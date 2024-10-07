@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Detalles de Compras</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F0F0F0;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2B78E4;
+        }
+        form {
+            margin-top: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2B78E4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Detalles de Compras</h2>
+
+        <form id="detalleCompraForm">
+            <input type="hidden" id="id_detalle_compra" name="id_detalle_compra">
+
+            <label for="id_compra">Compra:</label>
+            <select id="id_compra" name="id_compra" required>
+                <option value="">Seleccione una compra</option>
+            </select><br>
+
+            <label for="id_producto">Producto:</label>
+            <select id="id_producto" name="id_producto" required>
+                <option value="">Seleccione un producto</option>
+            </select><br>
+
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" id="cantidad" name="cantidad" required><br>
+
+            <label for="precio_unitario">Precio Unitario:</label>
+            <input type="number" step="0.01" id="precio_unitario" name="precio_unitario" required><br>
+
+            <label for="subtotal">Subtotal:</label>
+            <input type="number" step="0.01" id="subtotal" name="subtotal" required><br>
+
+            <button type="submit" id="submitBtn">Guardar Detalle de Compra</button>
+        </form>
+
+        <!-- Tabla para listar los detalles de compra -->
+        <h3>Lista de Detalles de Compras</h3>
+        <table id="detalleCompraTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Compra</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="detalleCompraTableBody">
+                <!-- Los detalles cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadDetalleCompras(currentPage);
+            loadCompras();
+            loadProductos();
+
+               // Cargar las compras en el combo box
+               function loadCompras() {
+                fetch('/compras-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const compraSelect = document.getElementById('id_compra');
+                        compraSelect.innerHTML = '<option value="">Seleccione una compra</option>';
+                        data.forEach(compra => {
+                            const option = document.createElement('option');
+                            option.value = compra.id_compra;
+                            option.textContent = compra.nombre;
+                            compraSelect.appendChild(option);
+                        });
+                    });
+            }
+
+            function loadProductos() {
+                fetch('/productos-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const productoSelect = document.getElementById('id_producto');
+                        productoSelect.innerHTML = '<option value="">Seleccione un producto</option>';
+                        data.forEach(producto => {
+                            const option = document.createElement('option');
+                            option.value = producto.id_producto;
+                            option.textContent = producto.nombre;
+                            productoSelect.appendChild(option);
+                        });
+                    });
+            }
+
+            // Cargar los detalles de compras al cargar la página
+            function loadDetalleCompras(page) {
+                fetch(`/detalle_compras?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('detalleCompraTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(detalle => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${detalle.id_detalle_compra}</td>
+                                    <td>${detalle.fecha_compra}</td>
+                                    <td>${detalle.producto}</td>
+                                    <td>${detalle.cantidad}</td>
+                                    <td>${detalle.precio_unitario}</td>
+                                    <td>${detalle.subtotal}</td>
+                                    <td>
+                                        <button onclick="editDetalleCompra(${detalle.id_detalle_compra}, '${detalle.id_compra}', '${detalle.id_producto}', ${detalle.cantidad}, ${detalle.precio_unitario}, ${detalle.subtotal})">Editar</button>
+                                        <button onclick="deleteDetalleCompra(${detalle.id_detalle_compra})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="7">No hay detalles de compras disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los detalles de compras:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadDetalleCompras(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar una unidad de medida
+            window.editDetalleCompra = function(id, id_compra, id_producto, cantidad, precio_unitario, subtotal) {
+    document.getElementById('id_detalle_compra').value = id;
+    document.getElementById('id_compra').value = id_compra;
+    document.getElementById('id_producto').value = id_producto;
+    document.getElementById('cantidad').value = cantidad;
+    document.getElementById('precio_unitario').value = precio_unitario;
+    document.getElementById('subtotal').value = subtotal;
+    document.querySelector('button[type="submit"]').textContent = 'Actualizar';
+};
+
+            // Función para eliminar una unidad de medida
+            window.deleteDetalleCompra = function(id) {
+                if (confirm('¿Estás seguro de eliminar esta compra?')) {
+                    fetch(`/detalle_compras/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Compra eliminada');
+                              loadDetalleCompras(currentPage);
+                          } else {
+                              alert('Error al eliminar compra');
+                          }
+                      });
+                }
+            };
+
+           // Manejar la creación o edición de unidades de medida
+           document.getElementById('detalleCompraForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_detalle_compra').value;
+                const id_compra = document.getElementById('id_compra').value;
+                const id_producto = document.getElementById('id_producto').value;
+                const cantidad = document.getElementById('cantidad').value;
+                const precio_unitario = document.getElementById('precio_unitario').value;
+                const subtotal = document.getElementById('subtotal').value;
+
+                if (id) {
+                    // Actualizar unidad existente
+                    fetch(`/detalle_compras/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_compra, id_producto, cantidad, precio_unitario, subtotal })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Compra actualizada');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadDetalleCompras(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar la compra');
+                          }
+                      });
+                } else {
+                    // Crear nueva unidad
+                    fetch('/detalle_compras', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_compra, id_producto, cantidad, precio_unitario, subtotal })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Detalle de compra creado');
+                              loadDetalleCompras(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el detalle');
+                          }
+                      });
+                }
+            });
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_compra').value = '';
+                document.getElementById('id_proveedor').value = '';
+                document.getElementById('fecha_compra').value = '';
+                document.getElementById('total').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            } 
+
+        });
+    </script>
+</body>
+</html>

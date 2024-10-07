@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Productos</h2>
+
+        <!-- Formulario para crear o editar productos -->
+        <form id="productoForm">
+            <input type="hidden" id="id_producto" name="id_producto">
+            <label for="nombre">Nombre del Producto:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion"></textarea><br>
+
+            <label for="precio">Precio:</label>
+            <input type="number" step="0.01" id="precio" name="precio" required><br>
+
+            <label for="stock_minimo">Stock Mínimo:</label>
+            <input type="number" id="stock_minimo" name="stock_minimo" required><br>
+
+            <!-- Combo boxes y etiquetas -->
+            <label for="id_proveedor">Proveedor:</label>
+            <select id="id_proveedor" name="id_proveedor" required>
+                <option value="">Seleccione un proveedor</option>
+                <!-- Los proveedores se cargarán dinámicamente -->
+            </select>
+            <span id="nombre_proveedor"></span><br>
+
+            <label for="id_categoria">Categoría:</label>
+            <select id="id_categoria" name="id_categoria" required>
+                <option value="">Seleccione una categoría</option>
+                <!-- Las categorías se cargarán dinámicamente -->
+            </select>
+            <span id="nombre_categoria"></span><br>
+
+            <label for="id_unidad_medida">Unidad de Medida:</label>
+            <select id="id_unidad_medida" name="id_unidad_medida" required>
+                <option value="">Seleccione una unidad de medida</option>
+                <!-- Las unidades se cargarán dinámicamente -->
+            </select>
+            <span id="nombre_unidad_medida"></span><br>
+
+            <label for="id_color">Color:</label>
+            <select id="id_color" name="id_color" required>
+                <option value="">Seleccione un color</option>
+                <!-- Los colores se cargarán dinámicamente -->
+            </select>
+            <span id="nombre_color"></span><br>
+
+            <label for="id_marca">Marca:</label>
+            <select id="id_marca" name="id_marca" required>
+                <option value="">Seleccione una marca</option>
+                <!-- Las marcas se cargarán dinámicamente -->
+            </select>
+            <span id="nombre_marca"></span><br>
+
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <!-- Tabla para listar productos -->
+        <h3>Lista de Productos</h3>
+        <table id="productoTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Precio</th>
+                    <th>Stock Mínimo</th>
+                    <th>Proveedor</th>
+                    <th>Categoría</th>
+                    <th>Unidad de Medida</th>
+                    <th>Color</th>
+                    <th>Marca</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="productoTableBody">
+                <!-- Productos cargados dinámicamente -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+
+            // Cargar los datos para los combo boxes al cargar la página
+            loadProveedores();
+            loadCategorias();
+            loadUnidadesMedida();
+            loadColores();
+            loadMarcas();
+
+            // Cargar los productos al cargar la página
+            loadProductos(currentPage);
+
+            // Manejar la creación o edición de productos
+            document.getElementById('productoForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_producto').value;
+                const nombre = document.getElementById('nombre').value;
+                const descripcion = document.getElementById('descripcion').value;
+                const precio = document.getElementById('precio').value;
+                const stock_minimo = document.getElementById('stock_minimo').value;
+                const id_proveedor = document.getElementById('id_proveedor').value;
+                const id_categoria = document.getElementById('id_categoria').value;
+                const id_unidad_medida = document.getElementById('id_unidad_medida').value;
+                const id_color = document.getElementById('id_color').value;
+                const id_marca = document.getElementById('id_marca').value;
+
+                if (id) {
+                    // Actualizar producto existente
+                    fetch(`/productos/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, descripcion, precio, stock_minimo, id_proveedor, id_categoria, id_unidad_medida, id_color, id_marca })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Producto actualizado');
+                              resetForm();
+                              loadProductos(currentPage);
+                          } else {
+                              alert('Error al actualizar el producto');
+                          }
+                      });
+                } else {
+                    // Crear nuevo producto
+                    fetch('/productos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, descripcion, precio, stock_minimo, id_proveedor, id_categoria, id_unidad_medida, id_color, id_marca })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Producto creado');
+                              resetForm();
+                              loadProductos(currentPage);
+                          } else {
+                              alert('Error al crear el producto');
+                          }
+                      });
+                }
+            });
+
+            // Cargar los proveedores en el combo box
+            function loadProveedores() {
+                fetch('/proveedores-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const proveedorSelect = document.getElementById('id_proveedor');
+                        proveedorSelect.innerHTML = '<option value="">Seleccione un proveedor</option>';
+                        data.forEach(proveedor => {
+                            const option = document.createElement('option');
+                            option.value = proveedor.id_proveedor;
+                            option.textContent = proveedor.id_proveedor;
+                            proveedorSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar proveedores:', error));
+            }
+
+            // Cargar las categorías en el combo box
+            function loadCategorias() {
+                fetch('/categorias-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const categoriaSelect = document.getElementById('id_categoria');
+                        categoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
+                        data.forEach(categoria => {
+                            const option = document.createElement('option');
+                            option.value = categoria.id_categoria;
+                            option.textContent = categoria.id_categoria;
+                            categoriaSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar categorías:', error));
+            }
+
+            // Cargar las unidades de medida en el combo box
+            function loadUnidadesMedida() {
+                fetch('/unidades-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const unidadSelect = document.getElementById('id_unidad_medida');
+                        unidadSelect.innerHTML = '<option value="">Seleccione una unidad de medida</option>';
+                        data.forEach(unidad => {
+                            const option = document.createElement('option');
+                            option.value = unidad.id_unidad;
+                            option.textContent = unidad.id_unidad;
+                            unidadSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar unidades de medida:', error));
+            }
+
+            // Cargar los colores en el combo box
+            function loadColores() {
+                fetch('/colores-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const colorSelect = document.getElementById('id_color');
+                        colorSelect.innerHTML = '<option value="">Seleccione un color</option>';
+                        data.forEach(color => {
+                            const option = document.createElement('option');
+                            option.value = color.id_color;
+                            option.textContent = color.id_color;
+                            colorSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar colores:', error));
+            }
+
+            // Cargar las marcas en el combo box
+            function loadMarcas() {
+                fetch('/marcas-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const marcaSelect = document.getElementById('id_marca');
+                        marcaSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+                        data.forEach(marca => {
+                            const option = document.createElement('option');
+                            option.value = marca.id_marca;
+                            option.textContent = marca.id_marca;
+                            marcaSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar marcas:', error));
+            }
+
+            // Cargar los productos
+            function loadProductos(page) {
+                fetch(`/productos?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('productoTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(producto => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${producto.id_producto}</td>
+                                    <td>${producto.nombre}</td>
+                                    <td>${producto.descripcion}</td>
+                                    <td>${producto.precio}</td>
+                                    <td>${producto.stock_minimo}</td>
+                                    <td>${producto.id_proveedor}</td>
+                                    <td>${producto.id_categoria}</td>
+                                    <td>${producto.id_unidad_medida}</td>
+                                    <td>${producto.id_color}</td>
+                                    <td>${producto.id_marca}</td>
+                                    <td>
+                                        <button onclick="editProducto(${producto.id_producto}, '${producto.nombre}', '${producto.descripcion}', ${producto.precio}, ${producto.stock_minimo}, ${producto.id_proveedor}, ${producto.id_categoria}, ${producto.id_unidad_medida}, ${producto.id_color}, ${producto.id_marca})">Editar</button>
+                                        <button onclick="deleteProducto(${producto.id_producto})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="11">No hay productos disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los productos:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadProductos(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un producto
+            window.editProducto = function(id, nombre, descripcion, precio, stock_minimo, id_proveedor, id_categoria, id_unidad_medida, id_color, id_marca) {
+                document.getElementById('id_producto').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('descripcion').value = descripcion;
+                document.getElementById('precio').value = precio;
+                document.getElementById('stock_minimo').value = stock_minimo;
+                document.getElementById('id_proveedor').value = id_proveedor;
+                document.getElementById('id_categoria').value = id_categoria;
+                document.getElementById('id_unidad_medida').value = id_unidad_medida;
+                document.getElementById('id_color').value = id_color;
+                document.getElementById('id_marca').value = id_marca;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un producto
+            window.deleteProducto = function(id) {
+                if (confirm('¿Estás seguro de eliminar este producto?')) {
+                    fetch(`/productos/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Producto eliminado');
+                              loadProductos(currentPage);
+                          } else {
+                              alert('Error al eliminar el producto');
+                          }
+                      });
+                }
+            };
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_producto').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('descripcion').value = '';
+                document.getElementById('precio').value = '';
+                document.getElementById('stock_minimo').value = '';
+                document.getElementById('id_proveedor').value = '';
+                document.getElementById('id_categoria').value = '';
+                document.getElementById('id_unidad_medida').value = '';
+                document.getElementById('id_color').value = '';
+                document.getElementById('id_marca').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+    </script>
+</body>
+</html>

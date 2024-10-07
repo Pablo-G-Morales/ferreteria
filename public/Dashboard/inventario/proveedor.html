@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Proveedores</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Proveedores</h2>
+
+        <!-- Formulario para crear o editar proveedores -->
+        <form id="proveedorForm">
+            <input type="hidden" id="id_proveedor" name="id_proveedor">
+            <label for="nombre">Nombre del Proveedor:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+
+            <label for="direccion">Dirección:</label>
+            <input type="text" id="direccion" name="direccion" required><br>
+
+            <label for="telefono">Teléfono:</label>
+            <input type="text" id="telefono" name="telefono" required><br>
+
+            <label for="correo">Correo:</label>
+            <input type="email" id="correo" name="correo" required><br>
+
+            <label for="celular">Celular:</label>
+            <input type="text" id="celular" name="celular" required><br>
+
+            <label for="contacto">Contacto:</label>
+            <input type="text" id="contacto" name="contacto" required><br>
+
+            <label for="pagina_web">Página Web:</label>
+            <input type="text" id="pagina_web" name="pagina_web"><br>
+
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <!-- Tabla para listar proveedores -->
+        <h3>Lista de Proveedores</h3>
+        <table id="proveedorTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Celular</th>
+                    <th>Contacto</th>
+                    <th>Página Web</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="proveedorTableBody">
+                <!-- Proveedores cargados dinámicamente -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+
+            // Cargar los proveedores al cargar la página
+            loadProveedores(currentPage);
+
+            // Manejar la creación o edición de proveedores
+            document.getElementById('proveedorForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_proveedor').value;
+                const nombre = document.getElementById('nombre').value;
+                const direccion = document.getElementById('direccion').value;
+                const telefono = document.getElementById('telefono').value;
+                const correo = document.getElementById('correo').value;
+                const celular = document.getElementById('celular').value;
+                const contacto = document.getElementById('contacto').value;
+                const pagina_web = document.getElementById('pagina_web').value;
+
+                if (id) {
+                    // Actualizar proveedor existente
+                    fetch(`/proveedores/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, direccion, telefono, correo, celular, contacto, pagina_web })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Proveedor actualizado');
+                              resetForm();
+                              loadProveedores(currentPage);
+                          } else {
+                              alert('Error al actualizar el proveedor');
+                          }
+                      });
+                } else {
+                    // Crear nuevo proveedor
+                    fetch('/proveedores', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, direccion, telefono, correo, celular, contacto, pagina_web })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Proveedor creado');
+                              resetForm();
+                              loadProveedores(currentPage);
+                          } else {
+                              alert('Error al crear el proveedor');
+                          }
+                      });
+                }
+            });
+
+            // Función para cargar los proveedores
+            function loadProveedores(page) {
+                fetch(`/proveedores?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('proveedorTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(proveedor => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${proveedor.id_proveedor}</td>
+                                    <td>${proveedor.nombre}</td>
+                                    <td>${proveedor.direccion}</td>
+                                    <td>${proveedor.telefono}</td>
+                                    <td>${proveedor.correo}</td>
+                                    <td>${proveedor.celular}</td>
+                                    <td>${proveedor.contacto}</td>
+                                    <td>${proveedor.pagina_web || ''}</td>
+                                    <td><center>
+                                        <button onclick="editProveedor(${proveedor.id_proveedor}, '${proveedor.nombre}', '${proveedor.direccion}', '${proveedor.telefono}', '${proveedor.correo}', '${proveedor.celular}', '${proveedor.contacto}', '${proveedor.pagina_web}')">Editar</button>
+                                        <button onclick="deleteProveedor(${proveedor.id_proveedor})">Eliminar</button>
+                                    </center></td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="9">No hay proveedores disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los proveedores:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadProveedores(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un proveedor
+            window.editProveedor = function(id, nombre, direccion, telefono, correo, celular, contacto, pagina_web) {
+                document.getElementById('id_proveedor').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('direccion').value = direccion;
+                document.getElementById('telefono').value = telefono;
+                document.getElementById('correo').value = correo;
+                document.getElementById('celular').value = celular;
+                document.getElementById('contacto').value = contacto;
+                document.getElementById('pagina_web').value = pagina_web;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un proveedor
+            window.deleteProveedor = function(id) {
+                if (confirm('¿Estás seguro de eliminar este proveedor?')) {
+                    fetch(`/proveedores/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Proveedor eliminado');
+                              loadProveedores(currentPage);
+                          } else {
+                              alert('Error al eliminar el proveedor');
+                          }
+                      });
+                }
+            };
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_proveedor').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('direccion').value = '';
+                document.getElementById('telefono').value = '';
+                document.getElementById('correo').value = '';
+                document.getElementById('celular').value = '';
+                document.getElementById('contacto').value = '';
+                document.getElementById('pagina_web').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+    </script>
+</body>
+</html>

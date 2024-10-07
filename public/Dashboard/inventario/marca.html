@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Marcas</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Marcas</h2>
+
+        <!-- Formulario para crear o editar marcas -->
+        <form id="marcaForm">
+            <input type="hidden" id="id_marca" name="id_marca">
+            <label for="nombre">Nombre de la Marca:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+
+            <!-- Combo box para seleccionar ID del proveedor -->
+            <label for="id_proveedor">ID del Proveedor:</label>
+            <select id="id_proveedor" name="id_proveedor" required>
+                <option value="">Seleccione un proveedor</option>
+                <!-- Los proveedores se cargarán dinámicamente aquí -->
+            </select><br>
+
+            <!-- Etiqueta para mostrar el nombre del proveedor seleccionado -->
+            <label for="nombre_proveedor">Nombre del Proveedor:</label>
+            <span id="nombre_proveedor"></span><br>
+
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <!-- Tabla para listar marcas -->
+        <h3>Lista de Marcas</h3>
+        <table id="marcaTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>ID Proveedor</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="marcaTableBody">
+                <!-- Marcas cargadas dinámicamente -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+
+            // Cargar los proveedores para el combo box al cargar la página
+            loadProveedores();
+
+            // Cargar las marcas al cargar la página
+            loadMarcas(currentPage);
+
+            // Manejar la creación o edición de marcas
+            document.getElementById('marcaForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_marca').value;
+                const nombre = document.getElementById('nombre').value;
+                const id_proveedor = document.getElementById('id_proveedor').value;
+
+                if (id) {
+                    // Actualizar marca existente
+                    fetch(`/marcas/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, id_proveedor })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Marca actualizada');
+                              resetForm();
+                              loadMarcas(currentPage);
+                          } else {
+                              alert('Error al actualizar la marca');
+                          }
+                      });
+                } else {
+                    // Crear nueva marca
+                    fetch('/marcas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, id_proveedor })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Marca creada');
+                              resetForm();
+                              loadMarcas(currentPage);
+                          } else {
+                              alert('Error al crear la marca');
+                          }
+                      });
+                }
+            });
+
+            // Cargar los proveedores en el combo box
+            function loadProveedores() {
+                fetch('/proveedores-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const proveedorSelect = document.getElementById('id_proveedor');
+                        proveedorSelect.innerHTML = '<option value="">Seleccione un proveedor</option>';
+                        data.forEach(proveedor => {
+                            const option = document.createElement('option');
+                            option.value = proveedor.id_proveedor;
+                            option.textContent = proveedor.id_proveedor;
+                            proveedorSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar proveedores:', error));
+            }
+
+            // Mostrar el nombre del proveedor seleccionado
+            document.getElementById('id_proveedor').addEventListener('change', function() {
+                const proveedorId = this.value;
+                const proveedorNombreLabel = document.getElementById('nombre_proveedor');
+
+                if (proveedorId) {
+                    fetch(`/proveedores-list`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const proveedor = data.find(p => p.id_proveedor == proveedorId);
+                            proveedorNombreLabel.textContent = proveedor ? proveedor.nombre : '';
+                        })
+                        .catch(error => console.error('Error al buscar proveedor:', error));
+                } else {
+                    proveedorNombreLabel.textContent = '';
+                }
+            });
+
+            // Cargar las marcas
+            function loadMarcas(page) {
+                fetch(`/marcas?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('marcaTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(marca => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${marca.id_marca}</td>
+                                    <td>${marca.nombre}</td>
+                                    <td>${marca.id_proveedor}</td>
+                                    <td>
+                                        <button onclick="editMarca(${marca.id_marca}, '${marca.nombre}', ${marca.id_proveedor})">Editar</button>
+                                        <button onclick="deleteMarca(${marca.id_marca})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="4">No hay marcas disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar las marcas:', error));
+            }
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_marca').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('id_proveedor').value = '';
+                document.getElementById('nombre_proveedor').textContent = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+
+            // Función para configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadMarcas(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar una marca
+            window.editMarca = function(id, nombre, id_proveedor) {
+                document.getElementById('id_marca').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('id_proveedor').value = id_proveedor;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+
+                // Mostrar el nombre del proveedor en la etiqueta
+                fetch('/proveedores-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const proveedor = data.find(p => p.id_proveedor == id_proveedor);
+                        document.getElementById('nombre_proveedor').textContent = proveedor ? proveedor.nombre : '';
+                    })
+                    .catch(error => console.error('Error al cargar los proveedores:', error));
+            };
+
+            // Función para eliminar una marca
+            window.deleteMarca = function(id) {
+                if (confirm('¿Estás seguro de eliminar esta marca?')) {
+                    fetch(`/marcas/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Marca eliminada');
+                              loadMarcas(currentPage);
+                          } else {
+                              alert('Error al eliminar la marca');
+                          }
+                      });
+                }
+            };
+            // Manejar la creación o edición de unidades de medida
+            document.getElementById('marcaForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_marca').value;
+                const nombre = document.getElementById('nombre').value;
+                const id_proveedor= document.getElementById('id_proveedor').value;
+
+                if (id) {
+                    // Actualizar unidad existente
+                    fetch(`/marcas/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, id_proveedor })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Color actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadMarcas(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar la unidad de medida');
+                          }
+                      });
+                } else {
+                    // Crear nueva unidad
+                    fetch('/marcas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, id_proveedor })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Color creado');
+                              loadMarcas(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el color');
+                          }
+                      });
+                }
+            });
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_marca').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('id_proveedor').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+    </script>
+</body>
+</html>

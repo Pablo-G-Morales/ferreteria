@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Compra</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F0F0F0;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2B78E4;
+        }
+        form {
+            margin-top: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2B78E4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registrar Compra</h1>
+        <form id="compraForm">
+            <input type="hidden" id="id_compra" name="id_compra">
+            
+            <label for="id_proveedor">Proveedor:</label>
+            <select id="id_proveedor" name="id_proveedor" required>
+                <option value="">Seleccione un proveedor</option>
+            </select>
+
+            <label for="fecha_compra">Fecha de la Compra:</label>
+            <input type="date" id="fecha_compra" name="fecha_compra" required>
+
+            <label for="total">Total:</label>
+            <input type="number" step="0.01" id="total" name="total" required>
+
+            <button type="submit" id="submitBtn">Guardar Compra</button>
+        </form>
+
+        <!-- Tabla para listar las compras -->
+        <h2>Lista de Compras</h2>
+        <table id="compraTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Proveedor</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="compraTableBody"></tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadProveedores();
+            loadCompras(currentPage);
+
+            // Cargar los proveedores en el combo box
+            function loadProveedores() {
+                fetch('/proveedores-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const proveedorSelect = document.getElementById('id_proveedor');
+                        proveedorSelect.innerHTML = '<option value="">Seleccione un proveedor</option>';
+                        data.forEach(proveedor => {
+                            const option = document.createElement('option');
+                            option.value = proveedor.id_proveedor;
+                            option.textContent = proveedor.nombre;
+                            proveedorSelect.appendChild(option);
+                        });
+                    });
+            }
+
+            // Cargar las compras
+            function loadCompras(page) {
+                fetch(`/compras?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('compraTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(compra => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${compra.id_compra}</td>
+                                    <td>${compra.proveedor}</td>
+                                    <td>${compra.fecha_compra}</td>
+                                    <td>${compra.total}</td>
+                                    <td>
+                                        <button onclick="editCompra(${compra.id_compra}, '${compra.id_proveedor}', '${compra.fecha_compra}', '${compra.total}')">Editar</button>
+                                        <button onclick="deleteCompra(${compra.id_compra})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="5">No hay compras disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    });
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadCompras(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+            // Función para editar una unidad de medida
+            window.editCompra = function(id, nombre, id_proveedor, fecha_compra, total) {
+                document.getElementById('id_compra').value = id;
+                document.getElementById('id_proveedor').value = id_proveedor;
+                document.getElementById('fecha_compra').value = fecha_compra;
+                document.getElementById('total').value = total;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar una unidad de medida
+            window.deleteCompra = function(id) {
+                if (confirm('¿Estás seguro de eliminar esta compra?')) {
+                    fetch(`/compras/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Compra eliminada');
+                              loadCompras(currentPage);
+                          } else {
+                              alert('Error al eliminar compra');
+                          }
+                      });
+                }
+            };
+
+            // Manejar la creación o edición de unidades de medida
+            document.getElementById('compraForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_compra').value;
+                const id_proveedor = document.getElementById('id_proveedor').value;
+                const fecha_compra = document.getElementById('fecha_compra').value;
+                const total = document.getElementById('total').value;
+
+                if (id) {
+                    // Actualizar unidad existente
+                    fetch(`/compras/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_proveedor, fecha_compra, total })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Compra actualizada');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadCompras(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar la compra');
+                          }
+                      });
+                } else {
+                    // Crear nueva unidad
+                    fetch('/compras', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_proveedor, fecha_compra, total })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Compra creada');
+                              loadCompras(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear la compra');
+                          }
+                      });
+                }
+            });
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_compra').value = '';
+                document.getElementById('id_proveedor').value = '';
+                document.getElementById('fecha_compra').value = '';
+                document.getElementById('total').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+    </script>
+</body>
+</html>

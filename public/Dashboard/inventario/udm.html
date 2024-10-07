@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Unidades de Medida</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Unidades de Medida</h2>
+
+        <form id="unidadMedidaForm">
+            <input type="hidden" id="id_unidad" name="id_unidad">
+            <label for="nombre">Nombre de la Unidad:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion"></textarea><br>
+
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <!-- Tabla para listar unidades de medida -->
+        <h3>Lista de Unidades de Medida</h3>
+        <table id="unidadMedidaTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="unidadMedidaTableBody">
+                <!-- Las unidades cargadas dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadUnidades(currentPage);
+
+            // Cargar las unidades de medida al cargar la página
+            function loadUnidades(page) {
+                fetch(`/unidades?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('unidadMedidaTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(unidad => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${unidad.id_unidad}</td>
+                                    <td>${unidad.nombre}</td>
+                                    <td>${unidad.descripcion || 'Sin descripción'}</td>
+                                    <td>
+                                        <button onclick="editUnidad(${unidad.id_unidad}, '${unidad.nombre}', '${unidad.descripcion || ''}')">Editar</button>
+                                        <button onclick="deleteUnidad(${unidad.id_unidad})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="4">No hay unidades disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar las unidades de medida:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadUnidades(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar una unidad de medida
+            window.editUnidad = function(id, nombre, descripcion) {
+                document.getElementById('id_unidad').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('descripcion').value = descripcion;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar una unidad de medida
+            window.deleteUnidad = function(id) {
+                if (confirm('¿Estás seguro de eliminar esta unidad?')) {
+                    fetch(`/unidades/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Unidad de medida eliminada');
+                              loadUnidades(currentPage);
+                          } else {
+                              alert('Error al eliminar la unidad de medida');
+                          }
+                      });
+                }
+            };
+
+            // Manejar la creación o edición de unidades de medida
+            document.getElementById('unidadMedidaForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_unidad').value;
+                const nombre = document.getElementById('nombre').value;
+                const descripcion = document.getElementById('descripcion').value;
+
+                if (id) {
+                    // Actualizar unidad existente
+                    fetch(`/unidades/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, descripcion })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Unidad de medida actualizada');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadUnidades(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar la unidad de medida');
+                          }
+                      });
+                } else {
+                    // Crear nueva unidad
+                    fetch('/unidades', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, descripcion })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Unidad de medida creada');
+                              loadUnidades(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear la unidad de medida');
+                          }
+                      });
+                }
+            });
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_unidad').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('descripcion').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>

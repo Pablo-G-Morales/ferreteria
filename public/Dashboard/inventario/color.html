@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Colores</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Colores</h2>
+
+        <form id="colorForm">
+            <input type="hidden" id="id_color" name="id_color">
+            <label for="nombre">Nombre del Color:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <!-- Tabla para listar colores -->
+        <h3>Lista de Colores</h3>
+        <table id="colorTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="colorTableBody">
+                <!-- Los colores cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadColores(currentPage);
+
+            // Cargar los colores al cargar la página
+            function loadColores(page) {
+                fetch(`/colores?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('colorTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(color => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${color.id_color}</td>
+                                    <td>${color.nombre}</td>
+                                    <td>
+                                        <button onclick="editColor(${color.id_color}, '${color.nombre}')">Editar</button>
+                                        <button onclick="deleteColor(${color.id_color})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="3">No hay colores disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los colores:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadColores(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un color
+            window.editColor = function(id, nombre) {
+                document.getElementById('id_color').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un color
+            window.deleteColor = function(id) {
+                if (confirm('¿Estás seguro de eliminar este color?')) {
+                    fetch(`/colores/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Color eliminado');
+                              loadColores(currentPage);
+                          } else {
+                              alert('Error al eliminar el color');
+                          }
+                      });
+                }
+            };
+         // Manejar la creación o edición de unidades de medida
+         document.getElementById('colorForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_color').value;
+                const nombre = document.getElementById('nombre').value;
+
+                if (id) {
+                    // Actualizar color existente
+                    fetch(`/colores/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Color actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadColores(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar el color');
+                          }
+                      });
+                } else {
+                    // Crear nuevo color
+                    fetch('/colores', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Nuevo color creado');
+                              loadColores(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el color');
+                          }
+                      });
+                }
+            }); 
+              // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_color').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>
