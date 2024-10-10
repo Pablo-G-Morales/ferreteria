@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Estado de Contraseña</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de estado de Contraseña</h2>
+
+        <form id="estadocontrasenaForm">
+            <input type="hidden" id="id_estado" name="id_estado">
+            <label for="nombre">Nombre del estado:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <!-- Tabla para listar tipos de pago -->
+        <h3>Lista de estado de contraseña</h3>
+        <table id="estadocontrasenaTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="estadocontrasenaTableBody">
+                <!-- Los tipos de pago cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadEstadocontrasena(currentPage);
+
+            // Cargar los tipos de pago al cargar la página
+            function loadEstadocontrasena(page) {
+                fetch(`/estadocontrasena?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('estadocontrasenaTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(estado_contrasena => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${estado_contrasena.id_estado}</td>
+                                    <td>${estado_contrasena.nombre}</td>
+                                    <td>
+                                        <button onclick="editEstadocontrasena(${estado_contrasena.id_estado}, '${estado_contrasena.nombre}')">Editar</button>
+                                        <button onclick="deleteEstadocontrasena(${estado_contrasena.id_estado})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="3">No hay estados de contraseña disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los estados de contraseña:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadEstadocontrasena(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un tipo de pago
+            window.editEstadocontrasena = function(id, nombre) {
+                document.getElementById('id_estado').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un tipo de pago
+            window.deleteEstadocontrasena = function(id) {
+                if (confirm('¿Estás seguro de eliminar este estado de contraseña?')) {
+                    fetch(`/estadocontrasena/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Estado de contraseña eliminado');
+                              loadEstadocontrasena(currentPage);
+                          } else {
+                              alert('Error al eliminar el estado de contraseña');
+                          }
+                      });
+                }
+            };
+         // Manejar la creación o edición de estado de contraseña
+         document.getElementById('estadocontraseñaForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_estado').value;
+                const nombre = document.getElementById('nombre').value;
+
+                if (id) {
+                    // Actualizar estado de contraseña existente
+                    fetch(`/estadocontrasena/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Estado de contraseña actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadEstadocontrasena(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar el estado de contraseña');
+                          }
+                      });
+                } else {
+                    // Crear nuevo estado de contraseña
+                    fetch('/estadocontrasena', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Nuevo estado de contraseña creado');
+                              loadEstadocontrasena(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el estado de contraseña');
+                          }
+                      });
+                }
+            }); 
+              // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_estado').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>
