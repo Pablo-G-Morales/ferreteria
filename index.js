@@ -11,6 +11,12 @@ const unidadesMedidaRoutes = require('./routes/unidadesMedidaRoutes');
 const productosRoutes = require('./routes/productosRoutes');
 const comprasRoutes = require('./routes/comprasRoutes');
 const vehiculoRoutes = require('./routes/vehiculoRoutes');
+const empleadoRoutes = require('./routes/empleadoRoutes');
+const estadocontrasenaRoutes = require('./routes/estado_contrasenaRoutes');
+const tipopagoRoutes = require('./routes/tipopagoRoutes');
+const orden_compraRoutes = require('./routes/orden_compraRoutes');
+const detalleordenRoutes = require('./routes/detalleordenRoutes');
+const contrasenaproveedorRoutes = require('./routes/contrasenaproveedorRoutes');
 
 const app = express();
 
@@ -29,6 +35,12 @@ app.use(unidadesMedidaRoutes);
 app.use(productosRoutes);
 app.use(comprasRoutes);
 app.use(vehiculoRoutes);
+app.use(empleadoRoutes);
+app.use(estadocontrasenaRoutes);
+app.use(tipopagoRoutes);
+app.use(orden_compraRoutes);
+app.use(detalleordenRoutes);
+app.use (contrasenaproveedorRoutes);
 
 // Archivos estáticos (HTML, CSS, etc.)
 app.use(express.static('public'));
