@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de tipo de vehiculo</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de tipo de vehiculo</h2>
+
+        <form id="tipovehiculoForm">
+            <input type="hidden" id="id_tipovehiculo" name="id_tipovehiculo">
+            <label for="nombre">Nombre del tipo de vehiculo:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <!-- Tabla para listar tipos de vehiculo -->
+        <h3>Lista de tipos de pago</h3>
+        <table id="tipovehiculoTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tipovehiculoTableBody">
+                <!-- Los tipos de vehiculo cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadTipovehiculo(currentPage);
+
+            // Cargar los tipos de vehiculo al cargar la página
+            function loadTipovehiculo(page) {
+                fetch(`/tipovehiculo?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('tipovehiculoTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(tipo_vehiculo => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${tipo_vehiculo.id_tipovehiculo}</td>
+                                    <td>${tipo_vehiculo.nombre}</td>
+                                    <td>
+                                        <button onclick="editTipovehiculo(${tipo_vehiculo.id_tipovehiculo}, '${tipo_vehiculo.nombre}')">Editar</button>
+                                        <button onclick="deleteTipovehiculo(${tipo_vehiculo.id_tipovehiculo})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="3">No hay tipos de vehiculo disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los tipos de vehiculo:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadTipovehiculo(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un tipo de vehiculo
+            window.editTipovehiculo = function(id, nombre) {
+                document.getElementById('id_tipovehiculo').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un tipo de vehiculo
+            window.deleteTipovehiculo = function(id) {
+                if (confirm('¿Estás seguro de eliminar este tipo de vehiculo?')) {
+                    fetch(`/tipovehiculo/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Tipo de vehiculo eliminado');
+                              loadTipovehiculo(currentPage);
+                          } else {
+                              alert('Error al eliminar el tipo de vehiculo');
+                          }
+                      });
+                }
+            };
+         // Manejar la creación o edición de tipo de vehiculo
+         document.getElementById('tipovehiculoForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_tipovehiculo').value;
+                const nombre = document.getElementById('nombre').value;
+
+                if (id) {
+                    // Actualizar tipo de vehiculo existente
+                    fetch(`/tipovehiculo/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Tipo de vehiculo actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadTipovehiculo(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar el tipo de vehiculo');
+                          }
+                      });
+                } else {
+                    // Crear nuevo tipo de vehiculo
+                    fetch('/tipovehiculo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Nuevo tipo de vehiculo creado');
+                              loadTipovehiculo(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el tipo de vehiculo');
+                          }
+                      });
+                }
+            }); 
+              // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_tipovehiculo').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>
