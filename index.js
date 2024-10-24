@@ -17,6 +17,11 @@ const tipopagoRoutes = require('./routes/tipopagoRoutes');
 const orden_compraRoutes = require('./routes/orden_compraRoutes');
 const detalleordenRoutes = require('./routes/detalleordenRoutes');
 const contrasenaproveedorRoutes = require('./routes/contrasenaproveedorRoutes');
+const tipovehiculoRoutes = require('./routes/tipovehiculoRoutes');
+const marcavehiculoRoutes = require('./routes/marcavehiculoRoutes');
+const generoRoutes = require('./routes/generoRoutes');
+const cargoempleadoRoutes = require('./routes/cargoempleadoRoutes');
+const expedienteRoutes = require('./routes/expedienteRoutes');
 
 const app = express();
 
@@ -41,6 +46,11 @@ app.use(tipopagoRoutes);
 app.use(orden_compraRoutes);
 app.use(detalleordenRoutes);
 app.use (contrasenaproveedorRoutes);
+app.use (tipovehiculoRoutes);
+app.use (marcavehiculoRoutes);
+app.use (generoRoutes);
+app.use (cargoempleadoRoutes);
+app.use (expedienteRoutes);
 
 // Archivos estáticos (HTML, CSS, etc.)
 app.use(express.static('public'));
