@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargo del empleado</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Cargo del empleado</h2>
+
+        <form id="cargoForm">
+            <input type="hidden" id="id_cargo" name="id_cargo">
+            <label for="nombre">Nombre del cargo del empleado:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+
+            <label for="descripcion">Descripcion del cargo del empleado:</label>
+            <input type="text" id="descripcion" name="descripcion" required><br>
+
+            <label for="salario">Salario:</label>
+            <input type="number" step="0.01" id="salario" name="salario" required><br>
+
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <!-- Tabla para listar tipos de cargo -->
+        <h3>Lista de cargos de empleado</h3>
+        <table id="cargoTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripcion</th>
+                    <th>Salario</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cargoTableBody">
+                <!-- Los tipos de cargo cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadCargo(currentPage);
+
+            // Cargar los tipos de cargo al cargar la página
+            function loadCargo(page) {
+                fetch(`/cargoempleado?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('cargoTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(cargo_empleado => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${cargo_empleado.id_cargo}</td>
+                                    <td>${cargo_empleado.nombre}</td>
+                                     <td>${cargo_empleado.descripcion}</td>
+                                      <td>${cargo_empleado.salario}</td>
+                                    <td>
+                                        <button onclick="editCargo(${cargo_empleado.id_cargo}, '${cargo_empleado.nombre}', '${cargo_empleado.descripcion}','${cargo_empleado.salario}')">Editar</button>
+                                        <button onclick="deleteCargo(${cargo_empleado.id_cargo})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="5">No hay tipos de cargo disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los cargos:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadCargo(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un tipo de cargo
+            window.editCargo = function(id, nombre, descripcion, salario) {
+                document.getElementById('id_cargo').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('descripcion').value = descripcion;
+                document.getElementById('salario').value = salario;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un tipo de cargo
+            window.deleteCargo = function(id) {
+                if (confirm('¿Estás seguro de eliminar este cargo?')) {
+                    fetch(`/cargoempleado/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Tipo de cargo eliminado');
+                              loadCargo(currentPage);
+                          } else {
+                              alert('Error al eliminar el tipo de cargo');
+                          }
+                      });
+                }
+            };
+         // Manejar la creación o edición de tipo de cargo
+         document.getElementById('cargoForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_cargo').value;
+                const nombre = document.getElementById('nombre').value;
+                const descripcion = document.getElementById('descripcion').value;
+                const salario = document.getElementById('salario').value;
+
+                if (id) {
+                    // Actualizar tipo de cargo existente
+                    fetch(`/cargoempleado/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, descripcion, salario })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Tipo de cargo actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadCargo(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar el tipo de cargo');
+                          }
+                      });
+                } else {
+                    // Crear nuevo tipo de cargo
+                    fetch('/cargoempleado', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, descripcion, salario })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Nuevo tipo de cargo creado');
+                              loadCargo(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el tipo de cargo');
+                          }
+                      });
+                }
+            }); 
+              // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_cargo').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('descripcion').value = '';
+                document.getElementById('salario').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>
