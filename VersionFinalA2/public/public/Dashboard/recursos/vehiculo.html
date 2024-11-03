@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso de vehiculo</title>
+    <link rel="stylesheet" href="styles1.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Ingreso de vehiculo</h2>
+
+        <form id="vehiculoForm">
+            <input type="hidden" id="id_vehiculo" name="id_vehiculo">
+            <label for="nombre">Nombre del vehiculo:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+
+            <label for="placa">Placa:</label>
+            <input type="text" id="placa" name="placa" required><br>
+
+            <label for="id_tipovehiculo">Tipo de vehiculo:</label>
+            <select id="id_tipovehiculo" name="id_tipovehiculo" required>
+                <option value="">Seleccione un vehiculo</option>
+            </select>
+
+            <label for="id_marcavehiculo">Marca:</label>
+            <select id="id_marcavehiculo" name="id_marcavehiculo" required>
+                <option value="">Seleccione un empleado</option>
+            </select>
+
+            <label for="color">Color:</label>
+            <input type="text" id="color" name="color" required><br>
+
+            <label for="propietario">Nombre del propietario: </label>
+            <input type="text" id="propietario" name="propietario" required><br>
+
+            <label for="precio">Precio:</label>
+            <input type="number" step="0.01" id="precio" name="precio" required><br>
+
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <div class="section-card">
+            <p>Opciones</p>
+            <button type="button" class="button" onclick="location.href='menu.html'">Volver a inicio</button>
+            <button type="button" class="button" onclick="location.href='../compras/orden_compra.html'">Volver a orden de compra</button>
+            <button type="button" class="button" onclick="location.href='tipovehiculo.html'">Añadir nuevo tipo de vehiculo</button>
+            <button type="button" class="button" onclick="location.href='marcavehiculo.html'">Añadir nueva marca</button>
+           </div>
+
+        <!-- Tabla para listar vehiculos -->
+        <h3>Lista de vehiculos</h3>
+        <table id="vehiculoTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Placa</th>
+                    <th>ID_tipo_vehiculo</th>
+                    <th>ID_marca_vehiculo</th>
+                    <th>Color</th>
+                    <th>Propietario</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody id="vehiculoTableBody">
+                <!-- Los empleados cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadVehiculo(currentPage);
+            loadTipovehiculo();
+            loadMarcavehiculo();
+
+            function loadTipovehiculo() {
+                fetch('/tipovehiculo-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const tipo_vehiculoSelect = document.getElementById('id_tipovehiculo');
+                        tipo_vehiculoSelect.innerHTML = '<option value="">Seleccione un tipo de vehiculo</option>';
+                        data.forEach(tipo_vehiculo => {
+                            const option = document.createElement('option');
+                            option.value = tipo_vehiculo.id_tipovehiculo;
+                            option.textContent = tipo_vehiculo.nombre;
+                            tipo_vehiculoSelect.appendChild(option);
+                        });
+                    });
+            }
+
+            function loadMarcavehiculo() {
+                fetch('/marcavehiculo-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const marca_vehiculoSelect = document.getElementById('id_marcavehiculo');
+                        marca_vehiculoSelect.innerHTML = '<option value="">Seleccione una marca</option>';
+                        data.forEach(marca_vehiculo => {
+                            const option = document.createElement('option');
+                            option.value = marca_vehiculo.id_marcavehiculo;
+                            option.textContent = marca_vehiculo.nombre;
+                            marca_vehiculoSelect.appendChild(option);
+                        });
+                    });
+            }
+
+            // Cargar los vehiculos al cargar la página
+            function loadVehiculo(page) {
+                fetch(`/vehiculo?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('vehiculoTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(vehiculo => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${vehiculo.id_vehiculo}</td>
+                                    <td>${vehiculo.nombre}</td>
+                                    <td>${vehiculo.placa}</td>
+                                    <td>${vehiculo.tipo_vehiculo}</td>
+                                    <td>${vehiculo.marca_vehiculo}</td>
+                                    <td>${vehiculo.color}</td>
+                                    <td>${vehiculo.propietario}</td>
+                                    <td>${vehiculo.precio}</td>
+                                    <td>
+                                        <button onclick="editVehiculo(${vehiculo.id_vehiculo}, '${vehiculo.nombre}', '${vehiculo.placa}', '${vehiculo.id_tipovehiculo}', '${vehiculo.id_marcavehiculo}', '${vehiculo.color}', '${vehiculo.propietario}', '${vehiculo.precio}')">Editar</button>
+                                        <button onclick="deleteVehiculo(${vehiculo.id_vehiculo})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="9">No hay vehiculos disponibles.</td>`; // Cambiado aquí
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los vehiculos:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadVehiculo(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un vehiculo
+            window.editVehiculo = function(id, nombre, placa, id_tipovehiculo, id_marcavehiculo, color, propietario, precio) {
+                document.getElementById('id_vehiculo').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('placa').value = placa;
+                document.getElementById('id_tipovehiculo').value = id_tipovehiculo;
+                document.getElementById('id_marcavehiculo').value = id_marcavehiculo;
+                document.getElementById('color').value = color;
+                document.getElementById('propietario').value = propietario;
+                document.getElementById('precio').value = precio;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un vehiculo
+            window.deleteVehiculo = function(id) {
+                if (confirm('¿Estás seguro de eliminar este vehiculo?')) {
+                    fetch(`/vehiculo/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Vehiculo eliminado');
+                              loadVehiculo(currentPage);
+                          } else {
+                              alert('Error al eliminar el vehiculo');
+                          }
+                      });
+                }
+            };
+
+            // Manejar la creación o edición de vehiculos
+            document.getElementById('vehiculoForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_vehiculo').value;
+                const nombre = document.getElementById('nombre').value;
+                const placa = document.getElementById('placa').value;
+                const id_tipovehiculo = document.getElementById('id_tipovehiculo').value;
+                const id_marcavehiculo = document.getElementById('id_marcavehiculo').value;
+                const color = document.getElementById('color').value;
+                const propietario = document.getElementById('propietario').value;
+                const precio = document.getElementById('precio').value;
+
+                if (id) {
+                    // Actualizar vehiculo existente
+                    fetch(`/vehiculo/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, placa, id_tipovehiculo, id_marcavehiculo, color, propietario, precio })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Vehiculo actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadVehiculo(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar el vehículo');
+                          }
+                      });
+                } else {
+                    // Crear nuevo vehiculo
+                    fetch('/vehiculo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, placa, id_tipovehiculo, id_marcavehiculo, color, propietario, precio })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Nuevo vehiculo creado');
+                              loadVehiculo(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el vehiculo');
+                          }
+                      });
+                }
+            });
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_vehiculo').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('placa').value = '';
+                document.getElementById('id_tipovehiculo').value = '';
+                document.getElementById('id_marcavehiculo').value = '';
+                document.getElementById('color').value = '';
+                document.getElementById('propietario').value = '';
+                document.getElementById('precio').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>
+

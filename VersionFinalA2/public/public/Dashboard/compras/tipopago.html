@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de tipo de pago</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de tipo de pago</h2>
+
+        <form id="tipopagoForm">
+            <input type="hidden" id="id_tipopago" name="id_tipopago">
+            <label for="nombre">Nombre Tipo de pago::</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <div class="section-card">
+            <p>Opciones</p>
+            <button type="button" class="button" onclick="location.href='menu.html'">Volver a inicio</button>
+            <button type="button" class="button" onclick="location.href='contrasenaproveedor.html'">Volver a contraseña proveedor</button>
+        </div>
+
+        <!-- Tabla para listar tipos de pago -->
+        <h3>Lista de tipos de pago</h3>
+        <table id="colorTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tipopagoTableBody">
+                <!-- Los tipos de pago cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadTipopago(currentPage);
+
+            // Cargar los tipos de pago al cargar la página
+            function loadTipopago(page) {
+                fetch(`/tipopago?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('tipopagoTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(tipo_pago => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${tipo_pago.id_tipopago}</td>
+                                    <td>${tipo_pago.nombre}</td>
+                                    <td>
+                                        <button onclick="editTipopago(${tipo_pago.id_tipopago}, '${tipo_pago.nombre}')">Editar</button>
+                                        <button onclick="deleteTipopago(${tipo_pago.id_tipopago})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="3">No hay tipos de pago disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los tipos de pago:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadTipopago(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un tipo de pago
+            window.editTipopago = function(id, nombre) {
+                document.getElementById('id_tipopago').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un tipo de pago
+            window.deleteTipopago = function(id) {
+                if (confirm('¿Estás seguro de eliminar este tipo de pago?')) {
+                    fetch(`/tipopago/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Tipo de pago eliminado');
+                              loadTipopago(currentPage);
+                          } else {
+                              alert('Error al eliminar el tipo de pago');
+                          }
+                      });
+                }
+            };
+         // Manejar la creación o edición de unidades de medida
+         document.getElementById('tipopagoForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_tipopago').value;
+                const nombre = document.getElementById('nombre').value;
+
+                if (id) {
+                    // Actualizar tipo de pago existente
+                    fetch(`/tipopago/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Tipo de pago actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadTipopago(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar el tipo de pago');
+                          }
+                      });
+                } else {
+                    // Crear nuevo tipo de pago
+                    fetch('/tipopago', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Nuevo tipo de pago creado');
+                              loadTipopago(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el tipo de pago');
+                          }
+                      });
+                }
+            }); 
+              // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_tipopago').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>

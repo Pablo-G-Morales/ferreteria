@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            border: 1px solid #000;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .header-left {
+            text-align: left;
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 0.8em;
+        }
+
+        .logo {
+            width: 150px;
+        }
+
+        h1 {
+            font-size: 1.2em;
+            color: #003399;
+        }
+
+        h2 {
+            font-size: 1em;
+            color: #003399;
+        }
+
+        .details {
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9em;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .table th, .table td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: center;
+        }
+
+        footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1em;
+            margin-top: 20px;
+        }
+
+        .signature {
+            text-align: center;
+            margin-top: 30px;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+            width: 200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 5px;
+            margin-top: 5px;
+        }
+        .btn-estilizado {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        background: linear-gradient(45deg, #253af7, #1a4beb); /* Gradiente de verde */
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn-estilizado:hover {
+        background: linear-gradient(45deg, #253af7, #1a4beb); /* Gradiente más claro en hover */
+        box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px); /* Efecto de elevación */
+    }
+
+    .btn-estilizado:active {
+        transform: translateY(0); /* Restablecer posición en clic */
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container" id="contenidoRecibo">
+        <header>
+            <div class="header-left">
+                <img src="/Dashboard/imagenes/logo.png" alt="Logo" class="logo">
+                <h1>DISTRIBUIDORA Y FERRETERÍA GUADALUPANA</h1>
+                <h2>CORPORACIÓN DE NEGOCIOS C & D, S.A.</h2>
+            </div>
+            <div class="header-right">
+                <p>DIRECCIÓN: 13 AVENIDA 7-27, ZONA 12 COLONIA LA REFORMITA</p>
+                <p>NIT: 10129956-7</p>
+                <p>PBX: 2475-2412</p>
+                <p>EMAIL: guadalupalogs@gmail.com</p>
+                <p>EMAIL: distribuidorayferreteriaguate@gmail.com</p>
+            </div>
+        </header>
+
+        <section class="details">
+            <p><strong>ENVÍO</strong> </p>
+            <p><strong>DIRECCIÓN:</strong> <input type="text" id="direccionInput" placeholder="Escriba la dirección aquí" /></p>
+            <p><strong>FECHA DE ENVÍO:</strong> <input type="date" id="fechaEnvio" value="2023-04-24" onchange="actualizarFechaEntrega()" /></p>
+            <p><strong>NOMBRE:</strong>
+                <select id="nombreSelect">
+                    <option value="">Seleccione un nombre</option>
+                </select>
+            </p>
+        </section>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>CÓDIGO</th>
+                    <th>PRODUCTO</th>
+                    <th>CATEGORÍA</th>
+                    <th>MARCA</th>
+                    <th>UNIDAD DE MEDIDA</th>
+                    <th>CANTIDAD</th>
+                    <th>PRECIO UNITARIO</th>
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
+            <tbody id="productosTable">
+                <!-- Aquí se llenarán los productos dinámicamente -->
+            </tbody>
+        </table>
+
+        <footer>
+            <p>Fecha de entrega: <input type="date" id="fechaEntrega" /></p>
+            <p>Observaciones: <input type="text" id="observacionesInput" placeholder="Escriba las observaciones aquí" /></p>
+        </footer>
+
+        <div class="signature">
+            <p>Firma del receptor:</p>
+            <button onclick="exportarPDF()" class="btn-estilizado">Exportar a PDF</button>
+            <div id="mensajeGuardado" style="display: none; background-color: #dff0d8; color: #3c763d; padding: 10px; text-align: center; margin: 15px 0; border: 1px solid #3c763d; border-radius: 5px;">
+                ¡Datos guardados con éxito!
+            </div>
+            <button onclick="guardarDatos()" class="btn-estilizado">Guardar Datos</button>
+        </div>
+    </div>
+
+    <script>
+        let cotizacionData = [];
+        let productosData = {};
+        
+        // Cargar la lista de clientes y datos de cotización desde el endpoint `/cotizacion`
+        fetch('http://localhost:5000/cotizacion')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.data)) {
+                    cotizacionData = data.data; 
+
+                    const clientesSet = new Set();
+                    cotizacionData.forEach(item => {
+                        if (item.nombre_cliente) {
+                            clientesSet.add(item.nombre_cliente);
+                        }
+                    });
+
+                    const nombreSelect = document.getElementById('nombreSelect');
+                    clientesSet.forEach(cliente => {
+                        const option = document.createElement('option');
+                        option.value = cliente;
+                        option.textContent = cliente;
+                        nombreSelect.appendChild(option);
+                    });
+                } else {
+                    console.error('Error al cargar clientes:', data.message || 'Respuesta inesperada');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+        // Cargar datos de productos desde el endpoint `/productos`
+        fetch('http://localhost:5000/productos')
+            .then(response => response.json())
+            .then(data => {
+                if (data.data && Array.isArray(data.data)) {
+                    data.data.forEach(producto => {
+                        productosData[producto.nombre] = producto;
+                    });
+                } else {
+                    console.error('Error al cargar productos:', data.message || 'Respuesta inesperada');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+        document.getElementById('nombreSelect').addEventListener('change', (event) => {
+            const nombreSeleccionado = event.target.value;
+            actualizarTablaProductos(nombreSeleccionado);
+        });
+
+        function actualizarTablaProductos(nombreCliente) {
+            const productosTable = document.getElementById('productosTable');
+            productosTable.innerHTML = ''; 
+
+            const productosFiltrados = cotizacionData.filter(item => item.nombre_cliente === nombreCliente);
+
+            productosFiltrados.forEach(productoCotizacion => {
+                const productoInfo = productosData[productoCotizacion.nombre_producto] || {};
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${productoCotizacion.id}</td>
+                    <td>${productoCotizacion.nombre_producto}</td>
+                    <td>${productoInfo.categoria || 'N/A'}</td>
+                    <td>${productoInfo.marca || 'N/A'}</td>
+                    <td>${productoInfo.unidad_medida || 'N/A'}</td>
+                    <td>${productoCotizacion.cantidad}</td>
+                    <td>${productoCotizacion.precio_unitario}</td>
+                    <td>${productoCotizacion.total}</td>
+                `;
+                productosTable.appendChild(row);
+            });
+        }
+
+        // Función para exportar el contenido a PDF
+        function exportarPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            const contenido = document.getElementById('contenidoRecibo');
+            
+            html2canvas(contenido).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                
+                const imgWidth = 190;
+                const pageHeight = pdf.internal.pageSize.height;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let position = 10;
+
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                pdf.save('Recibo.pdf');
+            });
+        }
+
+        // Función para guardar los datos
+        function guardarDatos() {
+    const direccionInput = document.getElementById('direccionInput').value;
+    const fechaEnvioInput = document.getElementById('fechaEnvio').value;
+    const nombreSelect = document.getElementById('nombreSelect').value;
+    const fechaEntregaInput = document.getElementById('fechaEntrega').value;
+    const observacionesInput = document.getElementById('observacionesInput').value;
+
+    // Obtener los productos de la tabla
+    const productos = [];
+    const productosTable = document.getElementById('productosTable').children;
+    for (let row of productosTable) {
+        const cells = row.children;
+        productos.push({
+            codigo: parseInt(cells[0].textContent),
+            nombre: cells[1].textContent,
+            categoria: cells[2].textContent,
+            marca: cells[3].textContent,
+            unidad_medida: cells[4].textContent,
+            cantidad: parseInt(cells[5].textContent),
+            precio_unitario: parseFloat(cells[6].textContent),
+            total: parseFloat(cells[7].textContent)
+        });
+    }
+
+     // Datos a enviar
+     const envioData = {
+        direccion: direccionInput,
+        fecha_envio: fechaEnvioInput,
+        nombre_cliente: nombreSelect,
+        fecha_entrega: fechaEntregaInput,
+        observaciones: observacionesInput,
+        productos: productos
+    };
+
+    // Log para verificar los datos
+    console.log({
+        direccion: direccionInput,
+        fechaEnvio: fechaEnvioInput,
+        nombreCliente: nombreSelect,
+        fechaEntrega: fechaEntregaInput,
+        observaciones: observacionesInput,
+        productos: productos
+    });
+
+    // Enviar los datos al backend
+    fetch('http://localhost:5000/guardar-datos', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(envioData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarMensajeGuardado();
+                resetFormulario();
+        } else {
+            console.error('Error al guardar datos:', data.message || 'Respuesta inesperada');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+// Función para mostrar el mensaje de guardado exitoso
+function mostrarMensajeGuardado() {
+        const mensajeGuardado = document.getElementById('mensajeGuardado');
+        mensajeGuardado.style.display = 'block'; 
+        setTimeout(() => {
+            mensajeGuardado.style.display = 'none'; 
+        }, 3000);
+    }
+
+    function resetFormulario() {
+        document.getElementById('direccionInput').value = ''; 
+        document.getElementById('fechaEnvio').value = ''; 
+        document.getElementById('nombreSelect').selectedIndex = 0; 
+        document.getElementById('fechaEntrega').value = ''; 
+        document.getElementById('observacionesInput').value = ''; 
+        
+        document.getElementById('productosTable').innerHTML = ''; 
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Contraseña de proveedor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #FFFFFF;
+        margin: 0;
+        padding: 20px;
+        text-align: center;
+        color: #333;
+    }
+    .container {
+        background-color: #F9F9F9;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    h1 {
+        color: #1E4FC7;
+        font-weight: 600;
+        font-size: 1.8em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    form {
+        margin-top: 20px;
+        text-align: left;
+    }
+    label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: 600;
+        color: #4A4A4A;
+    }
+    input, select {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        border: 1px solid #D1D1D1;
+        border-radius: 8px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        font-size: 1em;
+    }
+    input[type="date"] {
+        color: #555;
+    }
+    button {
+        padding: 10px 20px;
+        background-color: #1E4FC7;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+    }
+    button:hover {
+        background-color: #0F3AA8;
+    }
+    .section-card {
+        background-color: #F3F3F3;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .section-card p {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 10px;
+    }
+    .section-card button {
+        margin: 5px;
+        padding: 8px 15px;
+        font-size: 0.95em;
+        background-color: #1E4FC7;
+        color: #FFF;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .section-card button:hover {
+        background-color: #0F3AA8;
+    }
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+    table th, table td {
+        padding: 12px;
+        border: 1px solid #D3D3D3;
+        text-align: left;
+        font-size: 0.95em;
+    }
+    table th {
+        background-color: #E5E5E5;
+        color: #444;
+        font-weight: 700;
+    }
+    table td button {
+        padding: 5px 10px;
+        font-size: 0.85em;
+        background-color: #1E4FC7;
+        color: #FFF;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .pagination {
+        margin: 20px 0;
+        display: flex;
+        justify-content: center;
+    }
+    .pagination button {
+        margin: 0 5px;
+        padding: 8px 12px;
+        font-size: 0.9em;
+        background-color: #D1D1D1;
+        color: #333;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .pagination button:hover {
+        background-color: #B1B1B1;
+    }
+    .pagination .active {
+        background-color: #1E4FC7;
+        color: #FFF;
+    }
+</style>
+
+</head>
+<body>
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #F0F0F0;
+        margin: 0;
+        padding: 20px;
+        text-align: center;
+    }
+    .container {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        max-width: 1200px; /* Mayor ancho para el contenedor */
+        margin: 0 auto;
+        overflow: auto; /* Para evitar desbordamiento */
+    }
+    h1 {
+        color: #2B78E4;
+    }
+    form {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        text-align: left;
+    }
+    label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: bold;
+        flex-basis: 48%; /* Ajustado a 48% para evitar desbordamiento */
+    }
+    input, select {
+        width: calc(48% - 10px); /* Espacio para márgenes */
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        flex-basis: 48%; /* Ajustado a 48% para evitar desbordamiento */
+    }
+    button {
+        padding: 10px 20px;
+        background-color: #2B78E4;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-right: 5px; /* Margen entre botones */
+        flex-basis: 100%; /* Botones ocupan todo el ancho */
+        margin-top: 10px; /* Espacio arriba de los botones */
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    .section-card {
+        margin-top: 20px;
+    }
+    table {
+        width: 100%; /* Asegura que la tabla ocupe todo el ancho */
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
+    th {
+        background-color: #2B78E4;
+        color: white;
+    }
+</style>
+<body>
+    <div class="container">
+        <h1>Registrar Contraseña de proveedor</h1>
+        <form id="contrasenaForm">
+            <input type="hidden" id="id_contrasena" name="id_contrasena">
+            
+            <label for="idorden">Orden de compra:</label>
+            <select id="idorden" name="idorden" required>
+                <option value="">Seleccione una orden</option>
+            </select>
+
+            <label for="id_proveedor">Proveedor:</label>
+            <select id="id_proveedor" name="id_proveedor" required>
+                <option value="">Seleccione un proveedor</option>
+            </select>
+
+            <label for="fecha_inicio">Fecha inicio:</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+
+            <label for="fecha_limite">Fecha Limite:</label>
+            <input type="date" id="fecha_limite" name="fecha_limite" required>
+
+            <label for="id_tipopago">Tipo pago:</label>
+            <select id="id_tipopago" name="id_tipopago" required>
+                <option value="">Seleccione un tipo de pago</option>
+            </select>
+
+            <label for="id_estado">Estado:</label>
+            <select id="id_estado" name="id_estado" required>
+                <option value="">Seleccione un estado</option>
+            </select>
+
+            <label for="total">Total:</label>
+            <input type="number" step="0.01" id="total" name="total" required>
+
+            <button type="submit" id="submitBtn">Guardar detalle</button>
+        </form>
+
+        <div class="section-card">
+            <p>Opciones</p>
+            <button type="button" class="button" onclick="location.href='menu.html'">Volver a inicio</button>
+            <button type="button" class="button" onclick="location.href='gestionFacturacionDeCompras.html'">Añadir nueva orden</button>
+            <button type="button" class="button" onclick="location.href='../inventario/proveedor.html'">Añadir nuevo proveedor</button>
+            <button type="button" class="button" onclick="location.href='tipopago.html'">Añadir nuevo tipo de pago</button>
+            <button type="button" class="button" onclick="location.href='estado_contrasena.html'">Añadir nuevo estado de orden</button>
+        </div>
+
+        <!-- Tabla para listar las Contraseñas de proveedor -->
+        <h2>Lista de Contraseña de proveedor</h2>
+        <table id="contrasenaTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Orden</th>
+                    <th>Proveedor</th>
+                    <th>Fecha_inicio</th>
+                    <th>Fecha_limite</th>
+                    <th>Tipo_pago</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="contrasenaTableBody"></tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadOrdenes();
+            loadProveedores();
+            loadTipopago();
+            loadEstado();
+            loadContrasenaproveedor(currentPage);
+
+            // Cargar las órdenes en el combo box
+            function loadOrdenes() {
+                fetch('/ordenes-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Datos recibidos de /ordenes-list:', data); // Para depuración
+                        const ordenesSelect = document.getElementById('idorden');
+                        ordenesSelect.innerHTML = '<option value="">Seleccione una orden</option>';
+                        data.forEach(orden => {
+                            const option = document.createElement('option');
+                            option.value = orden.id; // Usar la propiedad correcta
+                            option.textContent = `Orden #${orden.id}`; // Mostrar el ID o cualquier otra información
+                            ordenesSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar órdenes:', error);
+                    });
+            }
+
+            // Cargar los proveedores en el combo box
+            function loadProveedores() {
+                fetch('/proveedores-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const proveedorSelect = document.getElementById('id_proveedor');
+                        proveedorSelect.innerHTML = '<option value="">Seleccione un proveedor</option>';
+                        data.forEach(proveedor => {
+                            const option = document.createElement('option');
+                            option.value = proveedor.id_proveedor;
+                            option.textContent = proveedor.nombre;
+                            proveedorSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar proveedores:', error);
+                    });
+            }
+
+            // Cargar los tipos de pago en el combo box
+            function loadTipopago() {
+                fetch('/tipopago-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const TipopagoSelect = document.getElementById('id_tipopago');
+                        TipopagoSelect.innerHTML = '<option value="">Seleccione un tipo de pago</option>';
+                        data.forEach(tipo_pago => {
+                            const option = document.createElement('option');
+                            option.value = tipo_pago.id_tipopago;
+                            option.textContent = tipo_pago.nombre;
+                            TipopagoSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar tipos de pago:', error);
+                    });
+            }
+
+            // Cargar los estados en el combo box
+            function loadEstado() {
+                fetch('/estadocontrasena-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const estado_contrasenaSelect = document.getElementById('id_estado');
+                        estado_contrasenaSelect.innerHTML = '<option value="">Seleccione un estado</option>';
+                        data.forEach(estado_contrasena => {
+                            const option = document.createElement('option');
+                            option.value = estado_contrasena.id_estado;
+                            option.textContent = estado_contrasena.nombre;
+                            estado_contrasenaSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar estados:', error);
+                    });
+            }
+
+            // Cargar las contraseñas de proveedor
+            function loadContrasenaproveedor(page) {
+                fetch(`/contrasenaproveedor?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('contrasenaTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(contrasenaproveedor => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${contrasenaproveedor.id_contrasena}</td>
+                                    <td>${contrasenaproveedor.idorden}</td>
+                                    <td>${contrasenaproveedor.proveedor}</td>
+                                    <td>${contrasenaproveedor.fecha_inicio}</td>
+                                    <td>${contrasenaproveedor.fecha_limite}</td>
+                                    <td>${contrasenaproveedor.tipopago}</td>
+                                    <td>${contrasenaproveedor.estado}</td>
+                                    <td>${contrasenaproveedor.total}</td>
+                                    <td>
+                                        <button onclick="editContrasenaproveedor(${contrasenaproveedor.id_contrasena}, '${contrasenaproveedor.idorden}', '${contrasenaproveedor.id_proveedor}', '${contrasenaproveedor.fecha_inicio}', '${contrasenaproveedor.fecha_limite}', '${contrasenaproveedor.id_tipopago}', '${contrasenaproveedor.id_estado}', '${contrasenaproveedor.total}')">Editar</button>
+                                        <button onclick="deleteContrasenaproveedor(${contrasenaproveedor.id_contrasena})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="9">No hay detalles de órdenes disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar contraseñas de proveedor:', error);
+                    });
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadContrasenaproveedor(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar una contraseña de proveedor
+            window.editContrasenaproveedor = function(id, idorden, id_proveedor, fecha_inicio, fecha_limite, id_tipopago, id_estado, total) {
+                document.getElementById('id_contrasena').value = id;
+                document.getElementById('idorden').value = idorden;
+                document.getElementById('id_proveedor').value = id_proveedor;
+                document.getElementById('fecha_inicio').value = fecha_inicio;
+                document.getElementById('fecha_limite').value = fecha_limite;
+                document.getElementById('id_tipopago').value = id_tipopago;
+                document.getElementById('id_estado').value = id_estado;
+                document.getElementById('total').value = total;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar una contraseña de proveedor
+            window.deleteContrasenaproveedor = function(id) {
+                if (confirm('¿Estás seguro de eliminar esta contraseña?')) {
+                    fetch(`/contrasenaproveedor/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Contraseña eliminada');
+                              loadContrasenaproveedor(currentPage);
+                          } else {
+                              alert('Error al eliminar contraseña');
+                          }
+                      })
+                      .catch(error => {
+                          console.error('Error al eliminar contraseña:', error);
+                      });
+                }
+            };
+
+            // Manejar la creación o edición de contraseña de proveedor
+            document.getElementById('contrasenaForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_contrasena').value;
+                const idorden = document.getElementById('idorden').value;
+                const id_proveedor = document.getElementById('id_proveedor').value;
+                const fecha_inicio = document.getElementById('fecha_inicio').value;
+                const fecha_limite = document.getElementById('fecha_limite').value;
+                const id_tipopago = document.getElementById('id_tipopago').value;
+                const id_estado = document.getElementById('id_estado').value;
+                const total = document.getElementById('total').value;
+
+                if (id) {
+                    // Actualizar contraseña existente
+                    fetch(`/contrasenaproveedor/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idorden, id_proveedor, fecha_inicio, fecha_limite, id_tipopago, id_estado, total })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Contraseña actualizada');
+                              document.getElementById('submitBtn').textContent = 'Guardar detalle';
+                              loadContrasenaproveedor(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar la contraseña');
+                          }
+                      })
+                      .catch(error => {
+                          console.error('Error al actualizar contraseña:', error);
+                      });
+                } else {
+                    // Crear nueva contraseña
+                    fetch('/contrasenaproveedor', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idorden, id_proveedor, fecha_inicio, fecha_limite, id_tipopago, id_estado, total })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Contraseña creada');
+                              loadContrasenaproveedor(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear la contraseña');
+                          }
+                      })
+                      .catch(error => {
+                          console.error('Error al crear contraseña:', error);
+                      });
+                }
+            });
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_contrasena').value = '';
+                document.getElementById('idorden').value = '';
+                document.getElementById('id_proveedor').value = '';
+                document.getElementById('fecha_inicio').value = '';
+                document.getElementById('fecha_limite').value = '';
+                document.getElementById('id_tipopago').value = '';
+                document.getElementById('id_estado').value = '';
+                document.getElementById('total').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar detalle';
+            }
+        });
+    </script>
+</body>
+</html>

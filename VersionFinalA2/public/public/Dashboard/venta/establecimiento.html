@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Establecimientos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        .btn {
+            padding: 5px 10px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+        .btn-edit {
+            background-color: #FFA500;
+        }
+        .btn-delete {
+            background-color: #DC3545;
+        }
+        .btn-add {
+            background-color: #28A745;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gestión de Establecimientos</h1>
+
+    <form id="establecimientoForm">
+        <input type="hidden" id="idestablecimiento" name="idestablecimiento">
+        <label for="nombre_empresa">Nombre de la empresa:</label>
+        <input type="text" id="nombre_empresa" name="nombre_empresa" required><br>
+
+        <label for="nombre_ferreteria">Nombre de la ferretería:</label>
+        <input type="text" id="nombre_ferreteria" name="nombre_ferreteria" required><br>
+
+        <label for="direccion">Dirección:</label>
+        <input type="text" id="direccion" name="direccion" required><br>
+
+        <label for="nit">NIT:</label>
+        <input type="text" id="nit" name="nit" required><br>
+
+        <label for="pbx">PBX:</label>
+        <input type="text" id="pbx" name="pbx" required><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+
+        <button type="submit" class="btn btn-add">Agregar Establecimiento</button>
+    </form>
+
+    <h2>Lista de Establecimientos</h2>
+    <table id="establecimientoTable">
+        <thead>
+            <tr>
+                <th>Nombre Empresa</th>
+                <th>Nombre Ferretería</th>
+                <th>Dirección</th>
+                <th>NIT</th>
+                <th>PBX</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los establecimientos se cargarán aquí -->
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+
+            // Función para cargar establecimientos
+            function loadEstablecimiento(page) {
+                fetch(`/establecimiento?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tableBody = document.querySelector('#establecimientoTable tbody');
+                        tableBody.innerHTML = '';
+                        data.data.forEach(establecimiento => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${establecimiento.nombre_empresa}</td>
+                                <td>${establecimiento.nombre_ferreteria}</td>
+                                <td>${establecimiento.direccion}</td>
+                                <td>${establecimiento.nit}</td>
+                                <td>${establecimiento.pbx}</td>
+                                <td>${establecimiento.email}</td>
+                                <td>
+                                    <button class="btn btn-edit" onclick="editEstablecimiento(${establecimiento.id})">Editar</button>
+                                    <button class="btn btn-delete" onclick="deleteEstablecimiento(${establecimiento.id})">Eliminar</button>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    });
+            }
+
+            // Cargar establecimientos al inicio
+            loadEstablecimiento(currentPage);
+
+            // Función para editar un establecimiento
+            window.editEstablecimiento = function(id) {
+                fetch(`/establecimiento/${id}`)
+                    .then(response => response.json())
+                    .then(establecimiento => {
+                        document.getElementById('idestablecimiento').value = establecimiento.id;
+                        document.getElementById('nombre_empresa').value = establecimiento.nombre_empresa;
+                        document.getElementById('nombre_ferreteria').value = establecimiento.nombre_ferreteria;
+                        document.getElementById('direccion').value = establecimiento.direccion;
+                        document.getElementById('nit').value = establecimiento.nit;
+                        document.getElementById('pbx').value = establecimiento.pbx;
+                        document.getElementById('email').value = establecimiento.email;
+                    });
+            };
+
+            // Función para eliminar un establecimiento
+            window.deleteEstablecimiento = function(id) {
+                if (confirm('¿Está seguro de que desea eliminar este establecimiento?')) {
+                    fetch(`/establecimiento/${id}`, { method: 'DELETE' })
+                        .then(response => response.json())
+                        .then(data => {
+                            alert(data.message);
+                            loadEstablecimiento(currentPage); // Recargar los establecimientos
+                        });
+                }
+            };
+
+            // Manejar el envío del formulario
+            document.getElementById('establecimientoForm').addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+                const formData = new FormData(this);
+                const id = document.getElementById('idestablecimiento').value;
+
+                const url = id ? `/establecimiento/${id}` : '/establecimiento'; // Diferenciar entre editar y agregar
+                const method = id ? 'PUT' : 'POST';
+
+                fetch(url, {
+                    method: method,
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    this.reset(); // Reiniciar el formulario
+                    loadEstablecimiento(currentPage); // Recargar los establecimientos
+                });
+            });
+        });
+    </script>
+</body>
+</html>

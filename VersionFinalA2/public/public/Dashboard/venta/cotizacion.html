@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Cotizaciones</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        .btn {
+            padding: 8px 12px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+        .btn-edit {
+            background-color: #FFA500;
+        }
+        .btn-delete {
+            background-color: #DC3545;
+        }
+        .btn-add {
+            background-color: #28A745;
+        }
+        .pagination {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .pagination button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .pagination button.disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gestión de Cotizaciones</h1>
+
+    <form id="cotizacionForm">
+        <input type="hidden" id="idcotizacion" name="idcotizacion">
+        
+        <label for="nombre_cliente">Nombre Cliente:</label>
+        <select id="nombre_cliente" name="nombre_cliente" required>
+            <option value="">Seleccione un cliente</option>
+            <!-- Las opciones de clientes se cargarán aquí -->
+        </select><br>
+
+        <label for="producto">Producto:</label>
+        <select id="producto" name="producto" required>
+            <option value="">Seleccione un producto</option>
+            <!-- Las opciones de productos se cargarán aquí -->
+        </select><br>
+
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" id="cantidad" name="cantidad" required><br>
+
+        <label for="precio_unitario">Precio Unitario:</label>
+        <input type="number" id="precio_unitario" name="precio_unitario" required><br>
+
+        <label for="total">Total:</label>
+        <input type="number" id="total" name="total" readonly><br>
+
+        <button type="submit" class="btn btn-add">Agregar Cotización</button>
+    </form>
+
+    <h2>Lista de Cotizaciones</h2>
+    <table id="cotizacionTable">
+        <thead>
+            <tr>
+                <th>Nombre Cliente</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Las cotizaciones se cargarán aquí -->
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <button id="prevPage" class="disabled">Anterior</button>
+        <button id="nextPage">Siguiente</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            const prevPageBtn = document.getElementById('prevPage');
+            const nextPageBtn = document.getElementById('nextPage');
+            const nombreClienteSelect = document.getElementById('nombre_cliente'); 
+            const productoSelect = document.getElementById('producto'); 
+
+            // Cargar la lista de clientes desde el backend
+            fetch('/cliente')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data); // Para verificar la respuesta
+                    if (data.success) {
+                        data.data.forEach(cliente => {
+ const option = document.createElement('option');
+                            option.value = cliente.id; 
+                            option.textContent = cliente.nombre; 
+                            nombreClienteSelect.appendChild(option);
+                        });
+                    } else {
+                        console.error('Error al cargar clientes:', data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+
+            // Cargar la lista de productos desde el backend
+            fetch('/productos')
+    .then(response => response.json())
+    .then(data => {
+        console.log(data); // Para verificar la respuesta
+        if (data.data && Array.isArray(data.data)) {
+            data.data.forEach(producto => {
+                const option = document.createElement('option');
+                option.value = producto.id; 
+                option.textContent = producto.nombre; 
+                productoSelect.appendChild(option);
+            });
+        } else {
+            console.error('No se encontraron productos o la estructura es incorrecta.');
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar productos:', error);
+    });
+
+            // Calcular el total automáticamente cuando cambian la cantidad o el precio unitario
+            const cantidadInput = document.getElementById('cantidad');
+            const precioUnitarioInput = document.getElementById('precio_unitario');
+            const totalInput = document.getElementById('total');
+
+            function calcularTotal() {
+                const cantidad = parseFloat(cantidadInput.value) || 0;
+                const precioUnitario = parseFloat(precioUnitarioInput.value) || 0;
+                totalInput.value = cantidad * precioUnitario;
+            }
+
+            cantidadInput.addEventListener('input', calcularTotal);
+            precioUnitarioInput.addEventListener('input', calcularTotal);
+
+            // Función para cargar cotizaciones
+            function loadCotizacion(page) {
+                fetch(`/cotizacion?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tableBody = document.querySelector('#cotizacionTable tbody');
+                        tableBody.innerHTML = '';
+                        data.data.forEach(cotizacion => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${cotizacion.nombre_cliente}</td>
+                                <td>${cotizacion.nombre_producto}</td>
+                                <td>${cotizacion.cantidad}</td>
+                                <td>${cotizacion.precio_unitario}</td>
+                                <td>${cotizacion.total}</td>
+                                <td>
+                                    <button class="btn btn-delete" onclick="deleteCotizacion(${cotizacion.id})">Eliminar</button>
+
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+
+                        // Actualizar botones de paginación
+                        prevPageBtn.classList.toggle('disabled', page === 1);
+                        nextPageBtn.classList.toggle('disabled', page >= data.totalPages);
+                    });
+            }
+
+            // Cargar cotizaciones al inicio
+            loadCotizacion(currentPage);
+            // Función para finalizar una cotización
+        window.finalizarCotizacion = function(id) {
+            fetch(`/cotizacion/${id}`)
+                .then(response => response.json())
+                .then(cotizacion => {
+                    // Guardar los datos en localStorage
+                    localStorage.setItem('direccion', 'Dirección de Ejemplo'); // Cambia esto según tu lógica
+                    localStorage.setItem('fechaEnvio', new Date().toISOString().split('T')[0]); // Fecha actual
+                    localStorage.setItem('nombre', cotizacion.nombre_cliente);
+                    localStorage.setItem('productos', JSON.stringify([{ // Simulando un producto para ejemplo
+                        codigo: '001',
+                        nombre: cotizacion.nombre_producto,
+                        categoria: 'Categoría Ejemplo',
+                        marca: 'Marca Ejemplo',
+                        medida: 'Medida Ejemplo',
+                        unidad_medida: 'Unidad Ejemplo',
+                        cantidad: cotizacion.cantidad,
+                        precio_unitario: cotizacion.precio_unitario,
+                        total: cotizacion.total
+                    }]));
+
+                    // Redirigir a la página de envío
+                    window.location.href = 'envio.html';
+                })
+                .catch(error => console.error('Error:', error));
+        };
+
+            // Función para eliminar una cotización
+            window.deleteCotizacion = function(id) {
+                if (confirm('¿Está seguro de que desea eliminar esta cotización?')) {
+                    fetch(`/cotizacion/${id}`, { method: 'DELETE' })
+                        .then(response => response.json())
+                        .then(data => {
+                            alert(data.message);
+                            loadCotizacion(currentPage);
+                        });
+                }
+            };
+
+            // Manejar el envío del formulario
+document.getElementById('cotizacionForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('idcotizacion').value;
+    const nombre_cliente = nombreClienteSelect.options[nombreClienteSelect.selectedIndex].text; 
+    const producto = productoSelect.options[productoSelect.selectedIndex].text; 
+    const cantidad = parseFloat(document.getElementById('cantidad').value);
+    const precio_unitario = parseFloat(document.getElementById('precio_unitario').value);
+    const total = parseFloat(document.getElementById('total').value);
+
+    const payload = {
+        nombre_cliente,
+        producto,
+        cantidad,
+        precio_unitario,
+        total
+    };
+
+    const url = id ? `/cotizacion/${id}` : '/cotizacion';
+    const method = id ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        this.reset();
+        loadCotizacion(currentPage);
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+            // Función de paginación
+            prevPageBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadCotizacion(currentPage);
+                }
+            });
+
+            nextPageBtn.addEventListener('click', function() {
+                currentPage++;
+                loadCotizacion(currentPage);
+            });
+        });
+        
+    </script>
+</body>
+</html>

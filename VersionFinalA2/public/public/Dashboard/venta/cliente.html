@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Cliente</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Registrar Cliente</h1>
+        <form id="clienteForm">
+            <label for="codigo_cliente">Código Cliente:</label>
+            <input type="text" id="codigo_cliente" name="codigo_cliente" required>
+
+            <label for="nit">NIT:</label>
+            <input type="text" id="nit" name="nit" required>
+
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required>
+
+            <label for="direccion">Dirección:</label>
+            <input type="text" id="direccion" name="direccion" required>
+
+            <label for="tipo_pago">Tipo de Pago:</label>
+            <select id="tipo_pago" name="tipo_pago" required>
+                <option value="">Seleccione un tipo de pago</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Transferencia">Transferencia</option>
+            </select>
+
+            <label for="dias_pago">Días de Pago:</label>
+            <input type="number" id="dias_pago" name="dias_pago" required>
+
+            <button type="submit" id="submitBtn">Guardar Cliente</button>
+        </form>
+
+        <!-- Tabla para listar los clientes -->
+        <h2>Lista de Clientes</h2>
+        <table id="clienteTable">
+            <thead>
+                <tr>
+                    <th>Código Cliente</th>
+                    <th>NIT</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Tipo de Pago</th>
+                    <th>Días de Pago</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="clienteTableBody"></tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadClientes(currentPage);
+
+            // Cargar los clientes
+            function loadClientes(page) {
+                fetch(`/cliente?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('clienteTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(cliente => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${cliente.codigo_cliente}</td>
+                                    <td>${cliente.nit}</td>
+                                    <td>${cliente.nombre}</td>
+                                    <td>${cliente.direccion}</td>
+                                    <td>${cliente.tipo_pago}</td>
+                                    <td>${cliente.dias_pago}</td>
+                                    <td>
+                                        <button onclick="editCliente('${cliente.codigo_cliente}', '${cliente.nit}', '${cliente.nombre}', '${cliente.direccion}', '${cliente.tipo_pago}', ${cliente.dias_pago})">Editar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="7">No hay clientes disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    });
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadClientes(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un cliente
+            window.editCliente = function(codigo_cliente, nit, nombre, direccion, tipo_pago, dias_pago) {
+                document.getElementById('codigo_cliente').value = codigo_cliente;
+                document.getElementById('nit').value = nit;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('direccion').value = direccion;
+                document.getElementById('tipo_pago').value = tipo_pago;
+                document.getElementById('dias_pago').value = dias_pago;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Manejar la creación o edición de clientes
+            document.getElementById('clienteForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const codigo_cliente = document.getElementById('codigo_cliente').value;
+                const nit = document.getElementById('nit').value;
+                const nombre = document.getElementById('nombre').value;
+                const direccion = document.getElementById('direccion').value;
+                const tipo_pago = document.getElementById('tipo_pago').value;
+                const dias_pago = document.getElementById('dias_pago').value;
+
+                if (document.getElementById('submitBtn').textContent === 'Actualizar') {
+                    // Actualizar cliente existente
+                    fetch(`/cliente/${codigo_cliente}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nit, nombre, direccion, tipo_pago, dias_pago })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Cliente actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar Cliente';
+                              loadClientes(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar el cliente');
+                          }
+                      });
+                } else {
+                    // Crear nuevo cliente
+                    fetch('/cliente', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ codigo_cliente, nit, nombre, direccion, tipo_pago, dias_pago })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Cliente creado');
+                              loadClientes(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el cliente');
+                          }
+                      });
+                }
+            });
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('codigo_cliente').value = '';
+                document.getElementById('nit').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('direccion').value = '';
+                document.getElementById('tipo_pago').value = '';
+                document.getElementById('dias_pago').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar Cliente';
+            }
+        });
+    </script>
+</body>
+</html>

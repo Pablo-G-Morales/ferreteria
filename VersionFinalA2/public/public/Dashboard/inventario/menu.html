@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Gestión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F0F0F0;
+            color: #333333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #2B78E4;
+            color: white;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 30px;
+            position: fixed;
+            top: 0;
+        }
+
+        .logo h2 {
+            font-weight: 600;
+        }
+
+        main {
+            flex: 1;
+            padding: 100px 30px 30px; /* Compensa la altura del menú fijo */
+            text-align: center;
+        }
+
+        h1 {
+            color: #2B78E4;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            justify-items: center;
+        }
+
+        .section-card {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 300px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .section-card img, .section-card .fa {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            color: #2B78E4;
+        }
+
+        .section-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2B78E4;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .section-card h2:hover {
+            color: #0056b3;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background-color: #2B78E4;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+            font-size: 1rem;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            background-color: #2B78E4;
+            padding: 20px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        /* Responsividad */
+        @media (max-width: 768px) {
+            .section-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+            }
+
+            .section-card {
+                padding: 20px 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .section-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .section-card {
+                padding: 15px 10px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 25px;
+            }
+
+            .section-card img, .section-card .fa {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 15px;
+            }
+
+            .section-card h2 {
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+            }
+
+            .button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <h2>Gestión de Inventario</h2>
+    </div>
+</header>
+
+<main>
+    <h1>Opciones de Gestión</h1>
+    <div class="section-grid">
+        <div class="section-card">
+            <img src="../imagenes/proveedor.png" onclick="location.href='proveedor.html'">
+            <h2 onclick="location.href='proveedor.html'">Proveedores</h2>
+            <button class="button" onclick="location.href='proveedor.html'">Gestionar</button>
+        </div>
+        <div class="section-card">
+            <img src="../imagenes/categorias.png" onclick="location.href='categoria.html'">
+            <h2 onclick="location.href='categoria.html'">Categorías</h2>
+            <button class="button" onclick="location.href='categoria.html'">Gestionar</button>
+        </div>
+        <div class="section-card">
+            <img src="../imagenes/unidad_medida.png" onclick="location.href='udm.html'">
+            <h2 onclick="location.href='udm.html'">Unidades de Medida</h2>
+            <button class="button" onclick="location.href='udm.html'">Gestionar</button>
+        </div>
+        <div class="section-card">
+            <img src="../imagenes/color.png" onclick="location.href='color.html'">
+            <h2 onclick="location.href='color.html'">Colores</h2>
+            <button class="button" onclick="location.href='color.html'">Gestionar</button>
+        </div>
+        <div class="section-card">
+            <img src="../imagenes/marca.png" onclick="location.href='marca.html'">
+            <h2 onclick="location.href='marca.html'">Marcas</h2>
+            <button class="button" onclick="location.href='marca.html'">Gestionar</button>
+        </div>
+        <div class="section-card">
+            <img src="../imagenes/producto.png" onclick="location.href='producto.html'">
+            <h2 onclick="location.href='producto.html'">Producto</h2>
+            <button class="button" onclick="location.href='producto.html'">Gestionar</button>
+        </div>   
+        <div class="section-card">
+            <img src="../imagenes/inicio.png" onclick="location.href='../../dashboard.html'">
+            <h2 onclick="location.href='../../dashboard.html'">Inicio</h2>
+            <button class="button" onclick="location.href='../../dashboard.html'">Volver a inicio</button>
+        </div> 
+    </div>
+</main>
+
+<footer>
+    <p>&copy; 2024 Gestión de Inventario</p>
+</footer>
+
+</body>
+</html>

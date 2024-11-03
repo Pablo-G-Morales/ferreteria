@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Expediente</title>
+    <link rel="stylesheet" href="styles1.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #fffefe;
+        color: #17084e;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        width: 100%; /* Aumentado al 100% */
+        max-width: 1400px; /* Máxima anchura aumentada */
+        margin: auto;
+        background-color: #fff4f4;
+        padding: 60px; /* Aumentado el padding */
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(95, 88, 88, 0.911);
+    }
+
+    h1 {
+        text-align: center;
+        color: #0071db; /* Color azul PS5 */
+        font-size: 2.5em; /* Tamaño de fuente del título aumentado */
+    }
+
+    form {
+        display: flex;
+        flex-direction: column; /* Cambiado a columna para una mejor organización */
+        gap: 25px; /* Espaciado entre campos aumentado */
+        margin-bottom: 30px; /* Margen inferior aumentado */
+    }
+
+    label {
+        font-weight: 600;
+        font-size: 1.2em; /* Aumentado el tamaño de la fuente de las etiquetas */
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select {
+        padding: 10px; /* Reducido el padding */
+        border: 1px solid #0071db;
+        border-radius: 5px;
+        background-color: #2a2a2a;
+        color: #ffffff;
+        width: 100%; /* Anchura completa para campos */
+        font-size: 1em; /* Reducido el tamaño de la fuente de los campos */
+    }
+
+    button {
+        background-color: #0071db;
+        color: #ffffff;
+        padding: 10px 20px; /* Reducido el padding */
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em; /* Reducido el tamaño de la fuente del botón */
+    }
+
+    button:hover {
+        background-color: #005bb5; /* Color azul más oscuro */
+    }
+
+    .section-card {
+        margin: 30px 0; /* Aumentado el margen */
+    }
+
+    .section-card p {
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.5em; /* Aumentado el tamaño de la fuente */
+    }
+
+    .button {
+        background-color: #0071db;
+        color: #ffffff;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 10px; /* Aumentado el margen entre botones */
+        font-size: 1.1em; /* Aumentado el tamaño de la fuente */
+    }
+
+    .button:hover {
+        background-color: #005bb5;
+    }
+
+    .table-responsive {
+        overflow-x: auto; /* Permite desplazamiento horizontal */
+        margin-top: 30px; /* Margen superior para la tabla */
+    }
+
+    table {
+        width: 100%; /* Asegurando que la tabla use todo el ancho */
+        border-collapse: collapse;
+        font-size: 0.9em; /* Reducido el tamaño de la fuente de la tabla */
+    }
+
+    th, td {
+        padding: 10px; /* Reducido el padding */
+        text-align: left;
+        border-bottom: 1px solid #0071db;
+    }
+
+    th {
+        background-color: #0071db;
+    }
+
+    tr:hover {
+        background-color: #005bb5;
+    }
+
+    #pagination {
+        text-align: center;
+        margin-top: 30px; /* Aumentado el margen superior */
+    }
+</style>
+<body>
+    <div class="container">
+        <h1>Registrar Expediente</h1>
+        <form id="expedienteForm">
+            <input type="hidden" id="id_expediente" name="id_expediente">
+
+            <label for="primer_nombre">Primer nombre:</label>
+            <input type="text" id="primer_nombre" name="primer_nombre" required><br>
+
+            <label for="segundo_nombre">Segundo nombre:</label>
+            <input type="text" id="segundo_nombre" name="segundo_nombre" required><br>
+
+            <label for="primer_apellido">Primer apellido:</label>
+            <input type="text" id="primer_apellido" name="primer_apellido" required><br>
+
+            <label for="segundo_apellido">Segundo apellido:</label>
+            <input type="text" id="segundo_apellido" name="segundo_apellido" required><br>
+
+            <label for="dpi">DPI:</label>
+            <input type="text" id="dpi" name="dpi" required><br>
+
+            <label for="nit">NIT:</label>
+            <input type="text" id="nit" name="nit" required><br>
+
+            <label for="fecha_nacimiento">Fecha nacimiento:</label>
+            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required>
+            
+            <label for="id_genero">Genero:</label>
+            <select id="id_genero" name="id_genero" required>
+                <option value="">Seleccione un genero</option>
+            </select>
+
+            <label for="telefono">Telefono: </label>
+            <input type="text" id="telefono" name="telefono" required><br>
+
+            <label for="celular">Celular: </label>
+            <input type="text" id="celular" name="celular" required><br>
+
+            <label for="direccion">Direccion:</label>
+            <input type="text" id="direccion" name="direccion" required><br>
+
+            <label for="nombre_contacto">Nombre del contacto:</label>
+            <input type="text" id="nombre_contacto" name="nombre_contacto" required><br>
+
+            <label for="telefono_contacto">Telefono del contacto:</label>
+            <input type="text" id="telefono_contacto" name="telefono_contacto" required><br>
+
+            <label for="fecha_ingreso">Fecha de ingreso:</label>
+            <input type="date" id="fecha_ingreso" name="fecha_ingreso" required>
+
+            <label for="fecha_egreso">Fecha de egreso:</label>
+            <input type="date" id="fecha_egreso" name="fecha_egreso" required>
+
+            <label for="id_cargo">Cargo del empleado:</label>
+            <select id="id_cargo" name="id_cargo" required>
+                <option value="">Seleccione un cargo</option>
+            </select>
+
+            <button type="submit" id="submitBtn">Guardar expediente</button>
+        </form>
+
+           <div class="section-card">
+            <p>Opciones</p>
+            <button type="button" class="button" onclick="location.href='menu.html'">Volver a inicio</button>
+            <button type="button" class="button" onclick="location.href='genero.html'">Añadir nuevo genero</button>
+            <button type="button" class="button" onclick="location.href='empleado.html'">Añadir nuevo empleado</button>
+            <button type="button" class="button" onclick="location.href='cargoempleado.html'">Añadir nuevo cargo</button>
+           </div>
+
+        <!-- Tabla para listar los expedientes -->
+        <h2>Lista de expedientes</h2>
+        <table id="expedienteTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>primer_nombre</th>
+                    <th>segundo_nombre</th>
+                    <th>primer_apellido</th>
+                    <th>segundo_apellido</th>
+                    <th>DPI</th>
+                    <th>NIT</th>
+                    <th>Fecha nacimiento</th>
+                    <th>Genero</th>
+                    <th>Telefono</th>
+                    <th>Celular</th>
+                    <th>Direccion</th>
+                    <th>Nombre contacto</th>
+                    <th>Telefono contacto</th>
+                    <th>Fecha ingreso</th>
+                    <th>Fecha egreso</th>
+                    <th>Cargo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="expedienteTableBody"></tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadGenero();
+            loadCargo();
+            loadExpediente(currentPage);
+
+            // Cargar los generos en el combo box
+            function loadGenero() {
+                fetch('/genero-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const generoSelect = document.getElementById('id_genero');
+                        generoSelect.innerHTML = '<option value="">Seleccione un genero</option>';
+                        data.forEach(genero => {
+                            const option = document.createElement('option');
+                            option.value = genero.id_genero;
+                            option.textContent = genero.nombre;
+                            generoSelect.appendChild(option);
+                        });
+                    });
+            }
+
+             // Cargar los vehiculos en el combo box
+             function loadCargo() {
+                fetch('/cargoempleado-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const cargo_empleadoSelect = document.getElementById('id_cargo');
+                        cargo_empleadoSelect.innerHTML = '<option value="">Seleccione un cargo</option>';
+                        data.forEach(cargo_empleado => {
+                            const option = document.createElement('option');
+                            option.value = cargo_empleado.id_cargo;
+                            option.textContent = cargo_empleado.nombre;
+                            cargo_empleadoSelect.appendChild(option);
+                        });
+                    });
+            }
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses son 0-indexed
+                const year = date.getFullYear();
+                return `${year}-${month}-${day}`; // Formato deseado
+            }
+            // Cargar las ordenes
+            function loadExpediente(page) {
+                fetch(`/expediente?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('expedienteTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(expediente => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${expediente.id_expediente}</td>
+                                    <td>${expediente.primer_nombre}</td>
+                                    <td>${expediente.segundo_nombre}</td>
+                                    <td>${expediente.primer_apellido}</td>
+                                    <td>${expediente.segundo_apellido}</td>
+                                    <td>${expediente.dpi}</td>
+                                    <td>${expediente.nit}</td>
+                                    <td>${formatDate(expediente.fecha_nacimiento)}</td>
+                                    <td>${expediente.genero}</td>
+                                    <td>${expediente.telefono}</td>
+                                    <td>${expediente.celular}</td>
+                                    <td>${expediente.direccion}</td>
+                                    <td>${expediente.nombre_contacto}</td>
+                                    <td>${expediente.telefono_contacto}</td>
+                                    <td>${formatDate(expediente.fecha_ingreso)}</td>
+                                    <td>${formatDate(expediente.fecha_egreso)}</td>
+                                    <td>${expediente.cargo_empleado}</td>
+                                    <td>
+                                        <button onclick="editExpediente(${expediente.id_expediente}, '${expediente.primer_nombre}', '${expediente.segundo_nombre}', '${expediente.primer_apellido}', '${expediente.segundo_apellido}', '${expediente.dpi}', '${expediente.nit}', '${expediente.fecha_nacimiento}', '${expediente.id_genero}', '${expediente.telefono}', '${expediente.celular}', '${expediente.direccion}', '${expediente.nombre_contacto}', '${expediente.telefono_contacto}', '${expediente.fecha_ingreso}', '${expediente.fecha_egreso}', '${expediente.id_cargo}')">Editar</button>
+                                        <button onclick="deleteExpediente(${expediente.id_expediente})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="10">No hay Expedientes disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    });
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadExpediente(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+            // Función para editar Expediente
+    
+                window.editExpediente = function(id, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, dpi, nit, fecha_nacimiento, id_genero, telefono, celular, direccion, nombre_contacto, telefono_contacto, fecha_ingreso, fecha_egreso, id_cargo) {
+    document.getElementById('id_expediente').value = id;
+    document.getElementById('primer_nombre').value = primer_nombre || '';
+    document.getElementById('segundo_nombre').value = segundo_nombre || '';
+    document.getElementById('primer_apellido').value = primer_apellido || '';
+    document.getElementById('segundo_apellido').value = segundo_apellido || '';
+    document.getElementById('dpi').value = dpi || '';
+    document.getElementById('nit').value = nit || '';
+    document.getElementById('fecha_nacimiento').value = formatDate(fecha_nacimiento) || ''; 
+    document.getElementById('id_genero').value = id_genero || '';
+    document.getElementById('telefono').value = telefono || '';
+    document.getElementById('celular').value = celular || '';
+    document.getElementById('direccion').value = direccion || '';
+    document.getElementById('nombre_contacto').value = nombre_contacto || '';
+    document.getElementById('telefono_contacto').value = telefono_contacto || '';
+    document.getElementById('fecha_ingreso').value = formatDate(fecha_ingreso) || ''; 
+    document.getElementById('fecha_egreso').value = formatDate(fecha_egreso) || ''; 
+    document.getElementById('id_cargo').value = id_cargo || '';
+    document.getElementById('submitBtn').textContent = 'Actualizar';
+};
+
+            // Función para eliminar Expediente
+            window.deleteExpediente = function(id) {
+                if (confirm('¿Estás seguro de eliminar este Expediente?')) {
+                    fetch(`/expediente/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Expediente eliminado');
+                              loadExpediente(currentPage);
+                          } else {
+                              alert('Error al eliminar Expediente');
+                          }
+                      });
+                }
+            };
+
+            // Manejar la creación o edición de unidades de medida
+            document.getElementById('expedienteForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_expediente').value; 
+                const primer_nombre = document.getElementById('primer_nombre').value; 
+                const segundo_nombre = document.getElementById('segundo_nombre').value; 
+                const primer_apellido = document.getElementById('primer_apellido').value; 
+                const segundo_apellido = document.getElementById('segundo_apellido').value; 
+                const dpi = document.getElementById('dpi').value; 
+                const nit = document.getElementById('nit').value; 
+                const fecha_nacimiento = document.getElementById('fecha_nacimiento').value; 
+                const id_genero = document.getElementById('id_genero').value; 
+                const telefono = document.getElementById('telefono').value; 
+                const celular = document.getElementById('celular').value; 
+                const direccion = document.getElementById('direccion').value; 
+                const nombre_contacto = document.getElementById('nombre_contacto').value; 
+                const telefono_contacto = document.getElementById('telefono_contacto').value; 
+                const fecha_ingreso = document.getElementById('fecha_ingreso').value; 
+                const fecha_egreso = document.getElementById('fecha_egreso').value; 
+                const id_cargo = document.getElementById('id_cargo').value; 
+
+                if (id) {
+                    // Actualizar unidad existente
+                    fetch(`/expediente/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, dpi, nit, fecha_nacimiento, id_genero, telefono, celular, direccion, nombre_contacto, telefono_contacto, fecha_ingreso, fecha_egreso, id_cargo })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Expediente actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadExpediente(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar Expediente');
+                          }
+                      });
+                } else {
+                    // Crear nueva unidad
+                    fetch('/expediente', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, dpi, nit, fecha_nacimiento, id_genero, telefono, celular, direccion, nombre_contacto, telefono_contacto, fecha_ingreso, fecha_egreso, id_cargo })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Expediente creado');
+                              loadExpediente(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear Expediente');
+                          }
+                      });
+                }
+            });
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_expediente').value = '';
+                document.getElementById('primer_nombre').value = '';
+                document.getElementById('segundo_nombre').value = '';
+                document.getElementById('primer_apellido').value = '';
+                document.getElementById('segundo_apellido').value = '';
+                document.getElementById('dpi').value = '';
+                document.getElementById('nit').value = '';
+                document.getElementById('fecha_nacimiento').value = '';
+                document.getElementById('id_genero').value = '';
+                document.getElementById('telefono').value = '';
+                document.getElementById('celular').value = '';
+                document.getElementById('direccion').value = '';
+                document.getElementById('nombre_contacto').value = '';
+                document.getElementById('telefono_contacto').value = '';
+                document.getElementById('fecha_ingreso').value = '';
+                document.getElementById('fecha_egreso').value = '';
+                document.getElementById('id_cargo').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+    </script>
+</body>
+</html>

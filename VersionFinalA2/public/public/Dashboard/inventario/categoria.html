@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Categorías</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Categorías</h2>
+        <form id="categoriaForm">
+            <!-- Formulario para gestionar categorías -->
+            <input type="hidden" id="id_categoria" name="id_categoria">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required>
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion"></textarea>
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <div class="section-card">
+            <p>Opciones</p>
+            <button type="button" class="button" onclick="location.href='menu.html'">Volver a inicio</button>
+            <button type="button" class="button" onclick="location.href='producto.html'">Añadir nuevo producto</button>
+        </div>
+
+        <!-- Tabla para mostrar las categorías -->
+        <h3>Lista de Categorías</h3>
+        <table id="categoriaTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="categoriaTableBody">
+                <!-- Los datos de las categorías se cargarán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentPage = 1;
+        loadCategorias(currentPage);
+
+        function loadCategorias(page) {
+            fetch(`/categorias?page=${page}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('categoriaTableBody');
+                    tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                    if (data.data.length > 0) {
+                        data.data.forEach(categoria => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${categoria.id_categoria}</td>
+                                <td>${categoria.nombre}</td>
+                                <td>${categoria.descripcion}</td>
+                                <td>
+                                    <button onclick="editCategoria(${categoria.id_categoria}, '${categoria.nombre}', '${categoria.descripcion}')">Editar</button>
+                                    <button onclick="deleteCategoria(${categoria.id_categoria})">Eliminar</button>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td colspan="4">No hay categorías disponibles.</td>`;
+                        tbody.appendChild(row);
+                    }
+                    setupPagination(data.totalPages, data.currentPage);
+                })
+                .catch(error => console.error('Error al cargar las categorías:', error));
+        }
+
+        function setupPagination(totalPages, currentPage) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = (i === currentPage) ? 'active' : '';
+                pageButton.addEventListener('click', function() {
+                    currentPage = i;  // Actualiza la página actual
+                    loadCategorias(i);
+                });
+                pagination.appendChild(pageButton);
+            }
+        }
+
+        window.editCategoria = function(id, nombre, descripcion) {
+            document.getElementById('id_categoria').value = id;
+            document.getElementById('nombre').value = nombre;
+            document.getElementById('descripcion').value = descripcion;
+            document.getElementById('submitBtn').textContent = 'Actualizar';
+        };
+
+        window.deleteCategoria = function(id) {
+            if (confirm('¿Estás seguro de eliminar esta categoria?')) {
+                fetch(`/categorias/${id}`, {
+                    method: 'DELETE'
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          alert('Categoria eliminada');
+                          loadCategorias(currentPage);
+                      } else {
+                          alert('Error al eliminar la categoria');
+                      }
+                  })
+                  .catch(error => console.error('Error al eliminar la categoría:', error));
+            }
+        };
+
+        document.getElementById('categoriaForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('id_categoria').value;
+            const nombre = document.getElementById('nombre').value;
+            const descripcion = document.getElementById('descripcion').value;
+
+            if (id) {
+                fetch(`/categorias/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, descripcion })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          alert('Categoria actualizada');
+                          document.getElementById('submitBtn').textContent = 'Guardar';
+                          loadCategorias(currentPage);
+                          resetForm();
+                      } else {
+                          alert('Error al actualizar la categoria');
+                      }
+                  })
+                  .catch(error => console.error('Error al actualizar la categoría:', error));
+            } else {
+                fetch('/categorias', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, descripcion })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          alert('Categoria creada');
+                          loadCategorias(currentPage);
+                          resetForm();
+                      } else {
+                          alert('Error al crear la categoria');
+                      }
+                  })
+                  .catch(error => console.error('Error al crear la categoría:', error));
+            }
+        });
+
+        function resetForm() {
+            document.getElementById('id_categoria').value = '';
+            document.getElementById('nombre').value = '';
+            document.getElementById('descripcion').value = '';
+            document.getElementById('submitBtn').textContent = 'Guardar';
+        }
+    });
+    </script>
+</body>
+</html>

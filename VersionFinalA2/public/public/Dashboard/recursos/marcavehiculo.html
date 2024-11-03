@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de marca de vehiculo</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de marca de vehiculo</h2>
+
+        <form id="marcavehiculoForm">
+            <input type="hidden" id="id_marcavehiculo" name="id_marcavehiculo">
+            <label for="nombre">Nombre de la marca de vehiculo:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <div class="section-card">
+            <p>Opciones</p>
+            <button type="button" class="button" onclick="location.href='menu.html'">Volver a inicio</button>
+            <button type="button" class="button" onclick="location.href='vehiculo.html'">Volver a vehiculo</button>
+        </div>
+
+        <!-- Tabla para listar marcas de vehiculo -->
+        <h3>Lista de marcas de pago</h3>
+        <table id="marcavehiculoTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="marcavehiculoTableBody">
+                <!-- Los marcas de vehiculo cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadMarcavehiculo(currentPage);
+
+            // Cargar los marcas de vehiculo al cargar la página
+            function loadMarcavehiculo(page) {
+                fetch(`/marcavehiculo?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('marcavehiculoTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(marca_vehiculo => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${marca_vehiculo.id_marcavehiculo}</td>
+                                    <td>${marca_vehiculo.nombre}</td>
+                                    <td>
+                                        <button onclick="editMarcavehiculo(${marca_vehiculo.id_marcavehiculo}, '${marca_vehiculo.nombre}')">Editar</button>
+                                        <button onclick="deleteMarcavehiculo(${marca_vehiculo.id_marcavehiculo})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="3">No hay marcas de vehiculo disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar las marcas de vehiculo:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadMarcavehiculo(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar una marca de vehiculo
+            window.editMarcavehiculo = function(id, nombre) {
+                document.getElementById('id_marcavehiculo').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar una marca de vehiculo
+            window.deleteMarcavehiculo = function(id) {
+                if (confirm('¿Estás seguro de eliminar esta marca de vehiculo?')) {
+                    fetch(`/marcavehiculo/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Marca de vehiculo eliminado');
+                              loadMarcavehiculo(currentPage);
+                          } else {
+                              alert('Error al eliminar la marca de vehiculo');
+                          }
+                      });
+                }
+            };
+         // Manejar la creación o edición de marca de vehiculo
+         document.getElementById('marcavehiculoForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_marcavehiculo').value;
+                const nombre = document.getElementById('nombre').value;
+
+                if (id) {
+                    // Actualizar marca de vehiculo existente
+                    fetch(`/marcavehiculo/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Marca de vehiculo actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadMarcavehiculo(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar la marca de vehiculo');
+                          }
+                      });
+                } else {
+                    // Crear nueva marca de vehiculo
+                    fetch('/marcavehiculo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Nuevo la marca de vehiculo creado');
+                              loadMarcavehiculo(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear la marca de vehiculo');
+                          }
+                      });
+                }
+            }); 
+              // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_marcavehiculo').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Marcas</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+
+    <!-- Incluir Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Marcas</h2>
+
+        <!-- Formulario para crear o editar marcas -->
+        <form id="marcaForm">
+            <input type="hidden" id="id_marca" name="id_marca">
+            
+            <label for="nombre">Nombre de la Marca:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+
+            <!-- Combo box para seleccionar Proveedor con Select2 -->
+            <label for="id_proveedor">Proveedor:</label>
+            <select id="id_proveedor" name="id_proveedor" required style="width: 100%;">
+                <option value="">Seleccione un proveedor</option>
+                <!-- Los proveedores se cargarán dinámicamente aquí -->
+            </select><br>
+
+            <!-- Etiqueta para mostrar el ID del proveedor seleccionado -->
+            <label for="id_proveedor_seleccionado">ID del Proveedor:</label>
+            <span id="id_proveedor_seleccionado"></span><br>
+
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+        <div class="section-card">
+            <p>Opciones</p>
+            <button type="button" class="button" onclick="location.href='menu.html'">Volver a inicio</button>
+            <button type="button" class="button" onclick="location.href='producto.html'">Añadir nuevo producto</button>
+        </div>
+
+
+        <!-- Eliminar el Campo de Búsqueda por Nombre -->
+        <!-- 
+        <label for="searchInput">Buscar por Nombre:</label>
+        <input type="text" id="searchInput" placeholder="Buscar marca por nombre">
+        -->
+
+        <!-- Eliminar el Filtro por Proveedor -->
+        <!-- 
+        <label for="filterProveedor">Filtrar por Proveedor:</label>
+        <select id="filterProveedor" style="width: 100%;">
+            <option value="">Todos los proveedores</option>
+            <!-- Los proveedores se cargarán dinámicamente aquí 
+        </select>
+        -->
+
+        <!-- Tabla para listar marcas -->
+        <h3>Lista de Marcas</h3>
+        <table id="marcaTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>ID Proveedor</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="marcaTableBody">
+                <!-- Marcas cargadas dinámicamente -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <!-- Incluir jQuery y Select2 JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+
+            // Inicializar Select2 en el select de proveedor del formulario
+            $('#id_proveedor').select2({
+                placeholder: 'Seleccione un proveedor',
+                allowClear: true
+            });
+
+            // Cargar los proveedores para el combo box al cargar la página
+            loadProveedores();
+
+            // Cargar las marcas al cargar la página
+            loadMarcas(currentPage);
+
+            // Manejar la creación o edición de marcas
+            document.getElementById('marcaForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_marca').value;
+                const nombre = document.getElementById('nombre').value;
+                const id_proveedor = document.getElementById('id_proveedor').value;
+
+                if (id) {
+                    // Actualizar marca existente
+                    fetch(`/marcas/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, id_proveedor })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Marca actualizada');
+                              resetForm();
+                              loadMarcas(currentPage);
+                          } else {
+                              alert('Error al actualizar la marca');
+                          }
+                      });
+                } else {
+                    // Crear nueva marca
+                    fetch('/marcas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre, id_proveedor })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Marca creada');
+                              resetForm();
+                              loadMarcas(currentPage);
+                          } else {
+                              alert('Error al crear la marca');
+                          }
+                      });
+                }
+            });
+
+            // Cargar los proveedores en el select del formulario
+            function loadProveedores() {
+                fetch('/proveedores-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const proveedorSelect = document.getElementById('id_proveedor');
+
+                        proveedorSelect.innerHTML = '<option value=""></option>'; // Para Select2 placeholder
+
+                        data.forEach(proveedor => {
+                            const option = document.createElement('option');
+                            option.value = proveedor.id_proveedor;
+                            option.textContent = proveedor.nombre; // Mostrar nombre en lugar de ID
+                            proveedorSelect.appendChild(option);
+                        });
+
+                        // Refresh Select2 después de agregar opciones
+                        $('#id_proveedor').trigger('change');
+                    })
+                    .catch(error => console.error('Error al cargar proveedores:', error));
+            }
+
+            // Mostrar el ID del proveedor seleccionado en el formulario
+            document.getElementById('id_proveedor').addEventListener('change', function() {
+                const proveedorId = this.value;
+                const proveedorIdLabel = document.getElementById('id_proveedor_seleccionado');
+
+                if (proveedorId) {
+                    // Mostrar el ID directamente, ya que está seleccionado
+                    proveedorIdLabel.textContent = proveedorId;
+                } else {
+                    proveedorIdLabel.textContent = '';
+                }
+            });
+
+            // Cargar las marcas sin filtro por proveedor
+            function loadMarcas(page) {
+    const url = `/marcas?page=${page}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Datos recibidos de /marcas:', data); // Depuración
+            const tbody = document.getElementById('marcaTableBody');
+            tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+            if (data.data.length > 0) {
+                data.data.forEach(marca => {
+                    console.log('Marca:', marca); // Depuración para cada marca
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${marca.id_marca}</td>
+                        <td>${marca.nombre}</td>
+                        <td>${marca.id_proveedor !== undefined ? marca.id_proveedor : 'N/A'}</td>
+                        <td>
+                            <button onclick="editMarca(${marca.id_marca}, '${marca.nombre}', ${marca.id_proveedor})">Editar</button>
+                            
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="4">No hay marcas disponibles.</td>`;
+                tbody.appendChild(row);
+            }
+            setupPagination(data.totalPages, data.currentPage);
+        })
+        .catch(error => console.error('Error al cargar las marcas:', error));
+}
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_marca').value = '';
+                document.getElementById('nombre').value = '';
+                $('#id_proveedor').val(null).trigger('change'); // Resetear Select2
+                document.getElementById('id_proveedor_seleccionado').textContent = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+
+            // Función para configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadMarcas(i); // Cargar la página seleccionada
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar una marca
+            window.editMarca = function(id, nombre, id_proveedor) {
+                document.getElementById('id_marca').value = id;
+                document.getElementById('nombre').value = nombre;
+                $('#id_proveedor').val(id_proveedor).trigger('change'); // Usar Select2 para seleccionar
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+
+                // Mostrar el ID del proveedor en la etiqueta
+                document.getElementById('id_proveedor_seleccionado').textContent = id_proveedor;
+            };
+
+            // Función para eliminar una marca
+           // window.deleteMarca = function(id) {
+             //   if (confirm('¿Estás seguro de eliminar esta marca?')) {
+               //     fetch(`/marcas/${id}`, {
+                 //       method: 'DELETE'
+                   // }).then(response => response.json())
+                     // .then(data => {
+                       //   if (data.success) {
+                         //     alert('Marca eliminada');
+                           //   loadMarcas(currentPage);
+                         // } else {
+                           //   alert('Error al eliminar la marca');
+                         // }
+          //            });
+        //        }
+      //      };
+      });
+    </script>
+</body>
+</html>

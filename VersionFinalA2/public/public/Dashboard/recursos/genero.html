@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genero del empleado</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+</head>
+<body>
+    <div class="container">
+        <h2>Genero del empleado</h2>
+
+        <form id="generoForm">
+            <input type="hidden" id="id_genero" name="id_genero">
+            <label for="nombre">Nombre del genero del empleado:</label>
+            <input type="text" id="nombre" name="nombre" required><br>
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <div class="section-card">
+            <p>Opciones</p>
+            <button type="button" class="button" onclick="location.href='menu.html'">Volver a inicio</button>
+            <button type="button" class="button" onclick="location.href='empleado.html'">Volver a empleado</button>
+           </div>
+
+        <!-- Tabla para listar tipos de genero -->
+        <h3>Lista de generos de empleado</h3>
+        <table id="generoTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="generoTableBody">
+                <!-- Los tipos de genero cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadGenero(currentPage);
+
+            // Cargar los tipos de genero al cargar la página
+            function loadGenero(page) {
+                fetch(`/genero?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('generoTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(genero => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${genero.id_genero}</td>
+                                    <td>${genero.nombre}</td>
+                                    <td>
+                                        <button onclick="editGenero(${genero.id_genero}, '${genero.nombre}')">Editar</button>
+                                        <button onclick="deleteGenero(${genero.id_genero})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="3">No hay tipos de vehiculo disponibles.</td>`;
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los generos:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadGenero(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un tipo de genero
+            window.editGenero = function(id, nombre) {
+                document.getElementById('id_genero').value = id;
+                document.getElementById('nombre').value = nombre;
+                document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un tipo de genero
+            window.deleteGenero = function(id) {
+                if (confirm('¿Estás seguro de eliminar este genero?')) {
+                    fetch(`/genero/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Tipo de genero eliminado');
+                              loadGenero(currentPage);
+                          } else {
+                              alert('Error al eliminar el tipo de genero');
+                          }
+                      });
+                }
+            };
+         // Manejar la creación o edición de tipo de genero
+         document.getElementById('generoForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_genero').value;
+                const nombre = document.getElementById('nombre').value;
+
+                if (id) {
+                    // Actualizar tipo de genero existente
+                    fetch(`/genero/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Tipo de genero actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadGenero(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar el tipo de genero');
+                          }
+                      });
+                } else {
+                    // Crear nuevo tipo de genero
+                    fetch('/genero', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Nuevo tipo de genero creado');
+                              loadGenero(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el tipo de genero');
+                          }
+                      });
+                }
+            }); 
+              // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_genero').value = '';
+                document.getElementById('nombre').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>

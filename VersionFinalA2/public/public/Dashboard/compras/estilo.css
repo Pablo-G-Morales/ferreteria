@@ -1,0 +1,110 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #F0F0F0;
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.form-container, .table-container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+h1, h2 {
+    color: #2B78E4;
+    text-align: center;
+}
+.factura-header, .factura-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+}
+.factura-header div, .factura-item {
+    flex: 1;
+    min-width: 180px;
+}
+.factura-header div.short {
+    flex: 0.5;
+}
+label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+}
+input, select {
+    width: 80%;
+    padding: 6px 8px;
+    height: 32px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+input[type="date"] {
+    font-size: 14px;
+    height: 38px;
+    padding: 6px 8px;
+}
+.select2-container--default .select2-selection--single {
+    height: 38px;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 38px;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    margin-top: 4px;
+}
+.button-add, .button-submit, .button-pdf {
+    padding: 8px 16px;
+    background-color: #2B78E4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+}
+.button-add {
+    width: 90px;
+    height: 60px;
+    margin-top: 28px;
+}
+.button-add:hover, .button-submit:hover, .button-pdf:hover {
+    background-color: #0056b3;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+th, td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+.action-button {
+    padding: 4px 8px;
+    background-color: #FF5733;
+    color: white;
+    border: none;
+    border-radius:  3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.action-button:hover {
+    background-color: #C70039;
+}
+.total-general-container {
+    margin-top: 10px;
+    text-align: right;
+    font-size: 16px;
+    font-weight: bold;
+}

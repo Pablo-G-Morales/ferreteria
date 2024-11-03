@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso de empleado</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Incluye tus estilos CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <h2>Ingreso de empleado</h2>
+
+        <form id="empleadoForm">
+            <input type="hidden" id="id_empleado" name="id_empleado">
+            <label for="nombre_completo">Nombre del empleado:</label>
+            <input type="text" id="nombre_completo" name="nombre_completo" required><br>
+
+            <label for="id_expediente">Empleado:</label>
+            <select id="id_expediente" name="id_expediente" required>
+                <option value="">Seleccione un empleado</option>
+            </select>
+
+            <button type="submit" id="submitBtn">Guardar</button>
+        </form>
+
+        <div class="section-card">
+            <p>Opciones</p>
+            <button type="button" class="button" onclick="location.href='menu.html'">Volver a inicio</button>
+            <button type="button" class="button" onclick="location.href='../compras/orden_compra.html'">Volver a orden de compra</button>
+            <button type="button" class="button" onclick="location.href='expediente.html'">Crear expediente</button>
+           </div>
+
+        <!-- Tabla para listar vehiculos -->
+        <h3>Lista de empleados</h3>
+        <table id="empleadoTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Expediente</th>
+                </tr>
+            </thead>
+            <tbody id="empleadoTableBody">
+                <!-- Los empleados cargados dinámicamente aparecerán aquí -->
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div id="pagination" class="pagination"></div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentPage = 1;
+            loadEmpleado(currentPage);
+            loadExpediente();
+
+            function loadExpediente() {
+                fetch('/expediente-list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const expedienteSelect = document.getElementById('id_expediente');
+                        expedienteSelect.innerHTML = '<option value="">Seleccione un expediente</option>';
+                        data.forEach(expediente => {
+                            const option = document.createElement('option');
+                            option.value = expediente.id_expediente;
+                            option.textContent = expediente.id_expediente;
+                            expedienteSelect.appendChild(option);
+                        });
+                    });
+            }
+
+            // Cargar los vehiculos al cargar la página
+            function loadEmpleado(page) {
+                fetch(`/empleado?page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tbody = document.getElementById('empleadoTableBody');
+                        tbody.innerHTML = ''; // Limpiar la tabla antes de recargar
+                        if (data.data.length > 0) {
+                            data.data.forEach(empleado => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${empleado.id_empleado}</td>
+                                    <td>${empleado.nombre_completo}</td>
+                                    <td>${empleado.expediente}</td>
+                                    <td>
+                                        <button onclick="editEmpleado(${empleado.id_empleado}, '${empleado.nombre_completo}', '${empleado.id_expediente}')">Editar</button>
+                                        <button onclick="deleteEmpleado(${empleado.id_empleado})">Eliminar</button>
+                                    </td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td colspan="4">No hay empleados disponibles.</td>`; // Cambiado aquí
+                            tbody.appendChild(row);
+                        }
+                        setupPagination(data.totalPages, data.currentPage);
+                    })
+                    .catch(error => console.error('Error al cargar los empleados:', error));
+            }
+
+            // Configurar la paginación
+            function setupPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = ''; // Limpiar la paginación antes de recargar
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = (i === currentPage) ? 'active' : '';
+                    pageButton.addEventListener('click', function() {
+                        loadEmpleado(i);
+                    });
+                    pagination.appendChild(pageButton);
+                }
+            }
+
+            // Función para editar un empleado
+            window.editEmpleado = function(id, nombre_completo, id_expediente) {
+            document.getElementById('id_empleado').value = id;
+            document.getElementById('nombre_completo').value = nombre_completo;
+            document.getElementById('id_expediente').value = id_expediente || ''; // Asegúrate de que esto esté bien
+            document.getElementById('submitBtn').textContent = 'Actualizar';
+            };
+
+            // Función para eliminar un empleado
+            window.deleteEmpleado = function(id) {
+                if (confirm('¿Estás seguro de eliminar este empleado?')) {
+                    fetch(`/empleado/${id}`, {
+                        method: 'DELETE'
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Empleado eliminado');
+                              loadEmpleado(currentPage);
+                          } else {
+                              alert('Error al eliminar el empleado');
+                          }
+                      });
+                }
+            };
+
+            // Manejar la creación o edición de vehiculos
+            document.getElementById('empleadoForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const id = document.getElementById('id_empleado').value;
+                const nombre_completo = document.getElementById('nombre_completo').value;
+                const id_expediente = document.getElementById('id_expediente').value;
+
+                if (id) {
+                    // Actualizar empleado existente
+                    fetch(`/empleado/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre_completo, id_expediente })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Empleado actualizado');
+                              document.getElementById('submitBtn').textContent = 'Guardar';
+                              loadEmpleado(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al actualizar el empleado');
+                          }
+                      });
+                } else {
+                    // Crear nuevo empleado
+                    fetch('/empleado', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre_completo, id_expediente })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              alert('Nuevo empleado creado');
+                              loadEmpleado(currentPage);
+                              resetForm();
+                          } else {
+                              alert('Error al crear el empleado');
+                          }
+                      });
+                }
+            });
+
+            // Función para resetear el formulario
+            function resetForm() {
+                document.getElementById('id_empleado').value = '';
+                document.getElementById('nombre_completo').value = '';
+                document.getElementById('id_expediente').value = '';
+                document.getElementById('submitBtn').textContent = 'Guardar';
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>

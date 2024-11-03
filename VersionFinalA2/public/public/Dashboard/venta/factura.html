@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            border: 1px solid #000;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .header-left {
+            text-align: left;
+        }
+
+        .header-right {
+            text-align: right;
+            font-size: 0.8em;
+        }
+
+        .logo {
+            width: 150px;
+        }
+
+        h1 {
+            font-size: 1.2em;
+            color: #003399;
+        }
+
+        h2 {
+            font-size: 1em;
+            color: #003399;
+        }
+
+        .details {
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9em;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .table th, .table td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: center;
+        }
+
+        footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1em;
+            margin-top: 20px;
+        }
+
+        .signature {
+            text-align: center;
+            margin-top: 30px;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+            width: 200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 5px;
+            margin-top: 5px;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            margin-top: 5px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+        .btn-estilizado {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        background: linear-gradient(45deg, #253af7, #1a4beb); /* Gradiente de verde */
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn-estilizado:hover {
+        background: linear-gradient(45deg, #253af7, #1a4beb); /* Gradiente más claro en hover */
+        box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px); /* Efecto de elevación */
+    }
+
+    .btn-estilizado:active {
+        transform: translateY(0); /* Restablecer posición en clic */
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container" id="contenidoRecibo">
+        <header>
+            <div class="header-left">
+                <img src="/Dashboard/imagenes/logo.png" alt="Logo" class="logo">
+                <h1>DISTRIBUIDORA Y FERRETERÍA GUADALUPANA</h1>
+                <h2>CORPORACIÓN DE NEGOCIOS C & D, S.A.</h2>
+            </div>
+            <div class="header-right">
+                <p>DIRECCIÓN: 13 AVENIDA 7-27, ZONA 12 COLONIA LA REFORMITA</p>
+                <p>NIT: 10129956-7</p>
+                <p>PBX: 2475-2412</p>
+                <p>EMAIL: guadalupalogs@gmail.com</p>
+                <p>EMAIL: distribuidorayferreteriaguate@gmail.com</p>
+            </div>
+        </header>
+
+        <section class="details">
+            <p><strong>Numero De Factura:</strong> <input type="text" id="direccionInput" placeholder="Escriba el numero de la factura aquí" /></p>
+            <p><strong >NOMBRE:</strong>
+                <select id="nombreSelect">
+                    <option value="" selected>Seleccione un nombre</option>
+                </select>
+            </p>
+            <p><strong>PRODUCTO:</strong>
+                <select id="productoSelect">
+                    <option value="" selected>Seleccione un producto</option>
+                </select>
+            </p>
+            <p><strong>CANTIDAD:</strong> <input type="number" id="cantidadInput" value="0" min=" 0" /></p>
+            <button id="agregarProducto">Agregar Producto</button>
+        </section>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>CÓDIGO</th>
+                    <th>PRODUCTO</th>
+                    <th>CATEGORÍA</th>
+                    <th>MARCA</th>
+                    <th>UNIDAD DE MEDIDA</th>
+                    <th>CANTIDAD</th>
+                    <th>PRECIO UNITARIO</th>
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
+            <tbody id="productosTable">
+                <!-- Aquí se llenarán los productos dinámicamente -->
+            </tbody>
+        </table>
+
+        <p><strong>Total de Factura:</strong> <span id="totalFactura">Q 0.00</span></p>
+
+        <div class="signature">
+            <button id="exportarPDF"class="btn-estilizado">Exportar a PDF</button>
+            <div id="mensajeGuardado" style="display: none; background-color: #dff0d8; color: #3c763d; padding: 10px; text-align: center; margin: 15px 0; border: 1px solid #3c763d; border-radius: 5px;">
+                ¡Datos guardados con éxito!
+            </div>
+            <button id="guardarDatos"class="btn-estilizado">Guardar Datos</button>
+            
+        </div>
+    </div>
+
+    <script>
+        let cotizacionData = [];
+        let productosData = {};
+
+        fetch('http://localhost:5000/cotizacion')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.data)) {
+                    cotizacionData = data.data;
+
+                    const clientesSet = new Set();
+                    cotizacionData.forEach(item => {
+                        if (item.nombre_cliente) {
+                            clientesSet.add(item.nombre_cliente);
+                        }
+                    });
+
+                    const nombreSelect = document.getElementById('nombreSelect');
+                    clientesSet.forEach(cliente => {
+                        const option = document.createElement('option');
+                        option.value = cliente;
+                        option.textContent = cliente;
+                        nombreSelect.appendChild(option);
+                    });
+                } else {
+                    console.error('Error al cargar clientes:', data.message || 'Respuesta inesperada');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+        fetch('http://localhost:5000/productos')
+            .then(response => response.json())
+            .then(data => {
+                if (data.data && Array.isArray(data.data)) {
+                    data.data.forEach(producto => {
+                        productosData[producto.nombre] = producto;
+                    });
+
+                    const productoSelect = document.getElementById('productoSelect');
+                    Object.keys(productosData).forEach(producto => {
+                        const option = document.createElement('option');
+                        option.value = producto;
+                        option.textContent = producto;
+                        productoSelect.appendChild(option);
+                    });
+                } else {
+                    console.error('Error al cargar productos:', data.message || 'Respuesta inesperada');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+        document.getElementById('agregarProducto').addEventListener('click', () => {
+            const productoSeleccionado = document.getElementById('productoSelect').value;
+            const cantidad = parseInt(document.getElementById('cantidadInput').value);
+            agregarProducto(productoSeleccionado, cantidad);
+            document.getElementById('cantidadInput').value = 0; // Reiniciar el campo de cantidad a 0
+        });
+
+        function agregarProducto(productoNombre, cantidad) {
+            const productosTable = document.getElementById('productosTable');
+            const productoInfo = productosData[productoNombre] || {};
+
+            const codigoAleatorio = generarCodigoAleatorio(7);
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${codigoAleatorio}</td>
+                <td>${productoNombre}</td>
+                <td>${productoInfo.descripcion || 'N/A'}</td>
+                <td >${productoInfo.marca || 'N/A'}</td>
+                <td>${productoInfo.unidad_medida || 'N/A'}</td>
+                <td>${cantidad}</td>
+                <td>${productoInfo.precio}</td>
+                <td>${(cantidad * productoInfo.precio).toFixed(2)}</td>
+            `;
+            productosTable.appendChild(row);
+
+            // Actualizar el total de la factura
+            const totalFacturaElement = document.getElementById('totalFactura');
+            const totalFactura = calcularTotalFactura();
+            totalFacturaElement.textContent = 'Q ' + totalFactura.toFixed(2);
+        }
+
+        function calcularTotalFactura() {
+            let totalFactura = 0;
+            const productosTableRows = document.getElementById('productosTable').rows;
+            for (let i = 0; i < productosTableRows.length ; i++) {
+                const row = productosTableRows[i];
+                const totalCell = row.cells[7];
+                totalFactura += parseFloat(totalCell.textContent);
+            }
+            return totalFactura;
+        }
+
+        function generarCodigoAleatorio(longitud) {
+            let codigo = '';
+            for (let i = 0; i < longitud; i++) {
+                const digito = Math.floor(Math.random() * 10);
+                codigo += digito.toString();
+            }
+            return codigo;
+        }
+
+        document.getElementById('exportarPDF').addEventListener('click', () => {
+    const contenidoRecibo = document.getElementById('contenidoRecibo');
+
+    html2canvas(contenidoRecibo).then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        
+        const { jsPDF } = window.jspdf; 
+        const pdf = new jsPDF({
+            orientation: 'portrait', // Orientación del PDF
+            unit: 'mm', // Unidades
+            format: 'a4', // Formato del PDF
+            putOnlyUsedFonts: true, // Solo incluir fuentes utilizadas
+            floatPrecision: 16 // Precisión de punto flotante
+        });
+        
+        const imgWidth = 190; // Ancho del PDF menos márgenes
+        const pageHeight = pdf.internal.pageSize.height;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save("Factura.pdf");
+    });
+});
+
+        document.getElementById('guardarDatos').addEventListener('click', () => {
+    const numeroFactura = document.getElementById('direccionInput').value.trim(); 
+    const nombreCliente = document.getElementById('nombreSelect').value;
+    const totalFactura = calcularTotalFactura();
+
+    // Verifica que el número de factura no esté vacío
+    if (!numeroFactura) {
+        alert('Por favor, ingrese un número de factura.');
+        return;
+    }
+
+    const productos = Array.from(document.getElementById('productosTable').rows).map(row => {
+        return {
+            codigo: row.cells[0].textContent,
+            nombre: row.cells[1].textContent,
+            categoria: row.cells[2].textContent,
+            marca: row.cells[3].textContent,
+            unidad_medida: row.cells[4].textContent,
+            cantidad: parseInt(row.cells[5].textContent),
+            precio_unitario: parseFloat(row.cells[6].textContent),
+            total: parseFloat(row.cells[7].textContent)
+        };
+    });
+
+    const facturaData = {
+        numero_factura: numeroFactura,
+        nombre_cliente: nombreCliente,
+        total_factura: totalFactura,
+        productos: productos
+    };
+
+    console.log('Datos a enviar:', facturaData); 
+
+    fetch('http://localhost:5000/api/facturas/guardar-factura', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(facturaData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarMensajeGuardado();
+            resetFormulario();
+        } else {
+            alert('Error al guardar los datos: ' + data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+function mostrarMensajeGuardado() {
+        const mensajeGuardado = document.getElementById('mensajeGuardado');
+        mensajeGuardado.style.display = 'block'; // Mostrar mensaje
+
+        // Ocultar mensaje después de 3 segundos
+        setTimeout(() => {
+            mensajeGuardado.style.display = 'none'; // Ocultar mensaje
+        }, 3000);
+    }
+
+     // Función para reiniciar todos los campos y selects
+     function resetFormulario() {
+        document.getElementById('direccionInput').value = ''; // Resetear número de factura
+        document.getElementById('nombreSelect').selectedIndex = 0; // Resetear select de nombre
+        document.getElementById('productoSelect').selectedIndex = 0; // Resetear select de producto
+        document.getElementById('cantidadInput').value = 0; // Reiniciar cantidad a 0
+        
+        // Limpiar la tabla de productos
+        const productosTable = document.getElementById('productosTable');
+        productosTable.innerHTML = ''; // Borrar todas las filas de productos
+
+        // Reiniciar el total de la factura
+        document.getElementById('totalFactura').textContent = 'Q 0.00';
+    }
+    </script>
+</body>
+</html>

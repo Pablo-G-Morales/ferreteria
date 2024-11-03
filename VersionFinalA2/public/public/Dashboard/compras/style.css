@@ -1,0 +1,150 @@
+/* General */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 1200px; /* Ajustar el máximo ancho */
+    text-align: center;
+    overflow-x: auto; /* Para permitir el desplazamiento horizontal si es necesario */
+    box-sizing: border-box; /* Incluir padding en el tamaño total del contenedor */
+}
+
+h2, h3 {
+    color: #2B78E4;
+    margin-bottom: 20px;
+}
+
+/* Formulario */
+form {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 40px;
+    text-align: left;
+}
+
+form label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+form input[type="text"],
+form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+form button {
+    background-color: #2B78E4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+form button:hover {
+    background-color: #1A5AA1;
+}
+
+/* Tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: auto; /* Hace que las celdas se adapten automáticamente */
+}
+
+table th, table td {
+    padding: 12px; /* Ajuste del padding para que no sea muy grande */
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    word-wrap: break-word; /* Permitir que el texto se ajuste en celdas largas */
+}
+
+table th {
+    background-color: #2B78E4;
+    color: white;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Estilo para alinear los botones dentro de la celda */
+table td .action-buttons {
+    display: flex;
+    justify-content: space-between; /* Asegura que los botones estén alineados y separados uniformemente */
+    gap: 10px; /* Espacio entre los botones */
+}
+
+table td button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+table td button:first-child {
+    background-color: #5cb85c;
+    color: white;
+}
+
+table td button:first-child:hover {
+    background-color: #4cae4c;
+}
+
+table td button:last-child {
+    background-color: #d9534f;
+    color: white;
+}
+
+table td button:last-child:hover {
+    background-color: #c9302c;
+}
+
+/* Responsivo: Hacer que la tabla se vea bien en pantallas pequeñas */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+
+    table th, table td {
+        font-size: 12px;
+        padding: 10px;
+    }
+
+    form input[type="text"],
+    form textarea {
+        font-size: 14px;
+    }
+
+    form button {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+}
