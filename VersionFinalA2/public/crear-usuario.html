@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Usuario</title>
+    <link rel="stylesheet" href="CSS/styles1.css">
+</head>
+<body>
+    <h2>Crear Nuevo Usuario</h2>
+    <form id="createUserForm">
+        <input type="text" id="nombre" name="nombre" placeholder="Nombre" required><br>
+        <input type="text" id="apellido" name="apellido" placeholder="Apellido" required><br>
+        <input type="text" id="username" name="username" placeholder="Username" required><br>
+        <input type="password" id="password" name="password" placeholder="Contraseña" required><br>
+        <input type="text" id="telefono" name="telefono" placeholder="Teléfono"><br>
+        <input type="email" id="correo" name="correo" placeholder="Correo"><br>
+
+        <label for="estadoSelect">Estado:</label>
+        <select name="estado_id" id="estadoSelect" required>
+            <option value="" disabled selected>Selecciona un estado</option>
+        </select>
+
+        <label for="rolSelect">Rol:</label>
+        <select name="rol_id" id="rolSelect" required>
+            <option value="" disabled selected>Selecciona un rol</option>
+        </select><br>
+
+        <button type="submit">Guardar</button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('createUserForm');
+            const estadoSelect = document.getElementById('estadoSelect');
+            const rolSelect = document.getElementById('rolSelect');
+
+            // Cargar estados desde el backend
+            async function cargarEstados() {
+                try {
+                    const response = await fetch('/estados');
+                    if (!response.ok) throw new Error('Error al cargar estados');
+                    const data = await response.json();
+                    data.forEach(estado => {
+                        const option = document.createElement('option');
+                        option.value = estado.id;
+                        option.textContent = estado.nombre;
+                        estadoSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error al cargar estados:', error);
+                }
+            }
+
+            // Cargar roles desde el backend
+            async function cargarRoles() {
+                try {
+                    const response = await fetch('/roles');
+                    if (!response.ok) throw new Error('Error al cargar roles');
+                    const data = await response.json();
+                    data.forEach(rol => {
+                        const option = document.createElement('option');
+                        option.value = rol.id;
+                        option.textContent = rol.nombre;
+                        rolSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error al cargar roles:', error);
+                }
+            }
+
+            // Enviar los datos del formulario al backend
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const data = {
+                    nombre: form.nombre.value,
+                    apellido: form.apellido.value,
+                    username: form.username.value,
+                    password: form.password.value,
+                    telefono: form.telefono.value,
+                    correo: form.correo.value,
+                    estado_id: parseInt(estadoSelect.value),
+                    rol_id: parseInt(rolSelect.value),
+                };
+
+                console.log('Datos enviados:', data); // Verificar datos en la consola
+
+                try {
+                    const response = await fetch('/usuarios', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) throw new Error('Error en la solicitud: ' + response.statusText);
+
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Usuario creado exitosamente');
+                        window.location.href = 'gestion.html';
+                    } else {
+                        alert('Error al crear el usuario: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('Error al crear usuario:', error);
+                    alert('Hubo un error al crear el usuario. Por favor, intenta nuevamente.');
+                }
+            });
+
+            // Cargar los estados y roles al iniciar
+            cargarEstados();
+            cargarRoles();
+        });
+    </script>
+</body>
+</html>

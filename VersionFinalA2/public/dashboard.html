@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribuidora y Ferreteria Guadalupana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Dashboard/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F0F0F0;
+            color: #333333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #2B78E4;
+            color: white;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 30px;
+            position: fixed;
+            top: 0;
+        }
+
+        .logo h2 {
+            font-weight: 600;
+        }
+
+        main {
+            flex: 1;
+            padding: 100px 30px 30px; /* Compensa la altura del menú fijo */
+            text-align: center;
+        }
+
+        h1 {
+            color: #2B78E4;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            justify-items: center;
+        }
+
+        .section-card {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 300px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .section-card img, .section-card .fa {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            color: #2B78E4;
+        }
+
+        .section-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2B78E4;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .section-card h2:hover {
+            color: #0056b3;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background-color: #2B78E4;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+            font-size: 1rem;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        footer {
+            background-color: #2B78E4;
+            padding: 20px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        /* Responsividad */
+        @media (max-width: 768px) {
+            .section-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+            }
+
+            .section-card {
+                padding: 20px 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .section-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .section-card {
+                padding: 15px 10px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 25px;
+            }
+
+            .section-card img, .section-card .fa {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 15px;
+            }
+
+            .section-card h2 {
+                font-size: 1.2rem;
+                margin-bottom: 15px;
+            }
+
+            .button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+            <nav>  
+                <ul class="nav-menu">
+                    <img src="Dashboard/imagenes/logo4.png" alt="Distribuidora y Ferretería Guadalupana" class="logo">
+                    <li><a href="Dashboard/compras/menu.html">Compras</a></li>
+                    <li><a href="Dashboard/venta/menu.html">Venta</a></li>
+                    <li><a href="Dashboard/inventario/menu.html">Inventario</a></li>
+                    <li><a href="Dashboard/recursos/menu.html">Recursos</a></li>
+                    <li><a href="./index.html">Cerrar sesion</a></li>
+                    <li><a href="https://docs.google.com/document/d/14O-QSkANZ-UvLjylfqbE0JuIBzfTINPIpJH9QhaTAgg/edit?usp=sharing">Ayuda</a></li>
+                </ul>
+            </nav>
+    </header>
+    <main>
+    <section id="inicio">
+    <br>    <h1>Bienvenido a Distribuidora y Ferreteria Guadalupana</h1>
+      <div class="section-grid">
+           <div class="section-card">
+            <img src="Dashboard/imagenes/carrito-de-compras.png" >
+            <h2>Gestion de compra</h2>
+            <p>Gestiona todo lo relacionado con compra de productos</p>
+            <button type="button" class="button" onclick="location.href='Dashboard/compras/menu.html'">Comenzar</button>
+           </div>
+           <div class="section-card">
+            <img src="Dashboard/imagenes/factura-punto-de-venta.png" >
+            <h2>Gestion de venta</h2>
+            <p>Gestiona todo lo relacionado con venta de productos</p>
+            <button type="button" class="button" onclick="location.href='Dashboard/venta/menu.html'">Comenzar</button>
+           </div>
+           <div class="section-card">
+            <img src="Dashboard/imagenes/alt-de-inventario.png" >
+            <h2>Gestion de inventario</h2>
+            <p>Gestiona el inventario de Distribuidora y Ferreteria Guadalupana</p>
+            <button type="button" class="button" onclick="location.href='Dashboard/inventario/menu.html'">Comenzar</button>
+           </div>
+           <div class="section-card">
+            <img src="Dashboard/imagenes/induccion.png" >
+            <h2>Gestion de recursos</h2>
+            <p>Gestiona los recursos con los que cuenta tu negocio</p>
+            <button type="button" class="button" onclick="location.href='Dashboard/recursos/menu.html'">Comenzar</button>
+           </div>
+           <div class="section-card">
+            <img src="Dashboard/imagenes/interrogatorio.png" >
+            <h2>Ayuda</h2>
+            <p>Docuemntos para hacer uso Correcto del sistema</p>
+            <button type="button" class="button" onclick="window.location.href='https://docs.google.com/document/d/14O-QSkANZ-UvLjylfqbE0JuIBzfTINPIpJH9QhaTAgg/edit?usp=sharing'">Ver</button>            
+           </div>
+        </div>
+    </section>
+    </main>
+    <footer>
+     <p>derechos reservados Distribuidora Ferreteria Guadalupana </p>
+    </footer>
+    <script>
+        document.getElementById('logoutBtn').addEventListener('click', function(event) {
+            event.preventDefault(); // Evita el comportamiento predeterminado del enlace
+            
+            // Lógica de cierre de sesión
+            // Elimina el token de sesión o cualquier dato de sesión que hayas guardado en localStorage o sessionStorage
+            localStorage.removeItem('userToken'); // Ejemplo de eliminación de un token en localStorage
+            sessionStorage.clear(); // Limpia todos los datos de sessionStorage (si usaste sessionStorage)
+            
+            // Redirige a la página de inicio de sesión o a la página principal
+            window.location.href = "index.html"; // Cambia esto a la ruta de tu página de inicio de sesión
+        });
+    </script>
+</body>
+</html>

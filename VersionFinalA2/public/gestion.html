@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios</title>
+    <link rel="stylesheet" href="CSS/styles1.css">
+</head>
+<body>
+    <h2>Gestión de Usuarios</h2>
+
+    <div>
+        <button type="button" id="logoutBtn">Cerrar Sesión</button>
+        <button type="button" id="goToDashboardBtn">Avanzar al Dashboard</button>
+        <button type="button" id="createUserBtn">Crear Nuevo Usuario</button>
+    </div>
+
+    <!-- Filtros de búsqueda -->
+    <div>
+        <label for="searchInput">Buscar:</label>
+        <input type="text" id="searchInput" placeholder="Buscar por nombre, apellido o username">
+
+        <label for="filterEstado">Estado:</label>
+        <select id="filterEstado">
+            <option value="">Todos</option>
+            <!-- Las opciones de estado se cargarán dinámicamente -->
+        </select>
+
+        <label for="filterRol">Rol:</label>
+        <select id="filterRol">
+            <option value="">Todos</option>
+            <!-- Las opciones de rol se cargarán dinámicamente -->
+        </select>
+    </div>
+
+    <!-- Tabla de usuarios -->
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+                <th>Username</th>
+                <th>Estado</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            <!-- Filas de usuarios -->
+        </tbody>
+    </table>
+
+    <!-- Formulario de edición de usuario -->
+    <div id="editUserForm" style="display:none;">
+        <h3>Editar Usuario</h3>
+        <form id="userEditForm">
+            <input type="hidden" id="editUserId">
+            <label for="editNombre">Nombre:</label>
+            <input type="text" id="editNombre" required><br>
+            <label for="editApellido">Apellido:</label>
+            <input type="text" id="editApellido" required><br>
+            <label for="editTelefono">Teléfono:</label>
+            <input type="text" id="editTelefono" required><br>
+            <label for="editCorreo">Correo:</label>
+            <input type="email" id="editCorreo" required><br>
+            <label for="editUsername">Username:</label>
+            <input type="text" id="editUsername" required><br>
+            <label for="editPassword">Contraseña (dejar en blanco si no desea cambiarla):</label>
+            <input type="password" id="editPassword"><br>
+            <label for="editEstado">Estado:</label>
+            <select id="editEstado" required>
+                <!-- Opciones de estado se cargarán dinámicamente -->
+            </select><br>
+            <label for="editRol">Rol:</label>
+            <select id="editRol" required>
+                <!-- Opciones de rol se cargarán dinámicamente -->
+            </select><br>
+            <button type="submit">Guardar Cambios</button>
+            <button type="button" id="cancelEditBtn">Cancelar</button>
+        </form>
+    </div>
+
+    <!-- Incluimos el script directamente -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const userTableBody = document.getElementById('userTableBody');
+            const searchInput = document.getElementById('searchInput');
+            const filterEstado = document.getElementById('filterEstado');
+            const filterRol = document.getElementById('filterRol');
+            const createUserBtn = document.getElementById('createUserBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const goToDashboardBtn = document.getElementById('goToDashboardBtn');
+
+            // Variables para almacenar estados y roles
+            let estadosData = [];
+            let rolesData = [];
+
+            // Función para cargar los estados desde el backend
+            async function loadEstados() {
+                try {
+                    const response = await fetch('/estados');
+                    const data = await response.json();
+                    estadosData = data; // Guardamos los estados para uso posterior
+
+                    // Populate filterEstado
+                    filterEstado.innerHTML = '<option value="">Todos</option>';
+                    data.forEach(estado => {
+                        const option = document.createElement('option');
+                        option.value = estado.nombre;
+                        option.textContent = estado.nombre;
+                        filterEstado.appendChild(option);
+                    });
+
+                    // Populate editEstado
+                    const editEstado = document.getElementById('editEstado');
+                    if (editEstado) {
+                        editEstado.innerHTML = '';
+                        data.forEach(estado => {
+                            const option = document.createElement('option');
+                            option.value = estado.id;
+                            option.textContent = estado.nombre;
+                            editEstado.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error al cargar estados:', error);
+                }
+            }
+
+            // Función para cargar los roles desde el backend
+            async function loadRoles() {
+                try {
+                    const response = await fetch('/roles');
+                    const data = await response.json();
+                    rolesData = data; // Guardamos los roles para uso posterior
+
+                    // Populate filterRol
+                    filterRol.innerHTML = '<option value="">Todos</option>';
+                    data.forEach(rol => {
+                        const option = document.createElement('option');
+                        option.value = rol.nombre;
+                        option.textContent = rol.nombre;
+                        filterRol.appendChild(option);
+                    });
+
+                    // Populate editRol
+                    const editRol = document.getElementById('editRol');
+                    if (editRol) {
+                        editRol.innerHTML = '';
+                        data.forEach(rol => {
+                            const option = document.createElement('option');
+                            option.value = rol.id;
+                            option.textContent = rol.nombre;
+                            editRol.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error al cargar roles:', error);
+                }
+            }
+
+            // Función para cargar los usuarios desde la base de datos
+            async function loadUsers() {
+                try {
+                    const response = await fetch('/usuarios');
+                    const data = await response.json();
+
+                    // Aplicar filtros y búsqueda
+                    const searchQuery = searchInput.value.toLowerCase().trim();
+                    const estadoFilter = filterEstado.value.toLowerCase().trim();
+                    const rolFilter = filterRol.value.toLowerCase().trim();
+
+                    const filteredUsers = data.filter(user => {
+                        const nombre = user.nombre ? user.nombre.toLowerCase().trim() : '';
+                        const apellido = user.apellido ? user.apellido.toLowerCase().trim() : '';
+                        const username = user.username ? user.username.toLowerCase().trim() : '';
+                        const estadoNombre = user.estado_nombre ? user.estado_nombre.toLowerCase().trim() : '';
+                        const rolNombre = user.rol_nombre ? user.rol_nombre.toLowerCase().trim() : '';
+
+                        // Búsqueda por nombre, apellido o username
+                        const matchesSearch = nombre.includes(searchQuery) ||
+                                              apellido.includes(searchQuery) ||
+                                              username.includes(searchQuery);
+
+                        // Filtrar por estado y rol
+                        const matchesEstado = estadoFilter ? estadoNombre === estadoFilter : true;
+                        const matchesRol = rolFilter ? rolNombre === rolFilter : true;
+
+                        return matchesSearch && matchesEstado && matchesRol;
+                    });
+
+                    userTableBody.innerHTML = '';
+                    if (filteredUsers.length > 0) {
+                        filteredUsers.forEach(user => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${user.nombre}</td>
+                                <td>${user.apellido}</td>
+                                <td>${user.telefono}</td>
+                                <td>${user.correo}</td>
+                                <td>${user.username}</td>
+                                <td>${user.estado_nombre}</td>
+                                <td>${user.rol_nombre}</td>
+                                <td>
+                                    <button class="edit-btn">Editar</button>
+                                </td>
+                            `;
+
+                            // Añadimos los event listeners al botón de editar
+                            const editButton = row.querySelector('.edit-btn');
+                            editButton.addEventListener('click', () => {
+                                editUser(user);
+                            });
+
+                            userTableBody.appendChild(row);
+                        });
+                    } else {
+                        const row = document.createElement('tr');
+                        row.innerHTML = '<td colspan="7">No hay usuarios que coincidan con los filtros.</td>';
+                        userTableBody.appendChild(row);
+                    }
+                } catch (error) {
+                    console.error('Error al cargar usuarios:', error);
+                }
+            }
+
+            // Función para editar un usuario
+            function editUser(user) {
+                // Rellenar el formulario con los datos del usuario
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editNombre').value = user.nombre || '';
+                document.getElementById('editApellido').value = user.apellido || '';
+                document.getElementById('editTelefono').value = user.telefono || '';
+                document.getElementById('editCorreo').value = user.correo || '';
+                document.getElementById('editUsername').value = user.username || '';
+                document.getElementById('editPassword').value = ''; // Campo de contraseña vacío
+                document.getElementById('editEstado').value = user.estado_id || '';
+                document.getElementById('editRol').value = user.rol_id || '';
+
+                // Mostrar el formulario de edición
+                document.getElementById('editUserForm').style.display = 'block';
+            }
+
+            // Manejar el envío del formulario de edición
+            document.getElementById('userEditForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                console.log('Evento submit capturado');
+
+                const id = document.getElementById('editUserId').value;
+                const updatedUser = {
+                    nombre: document.getElementById('editNombre').value,
+                    apellido: document.getElementById('editApellido').value,
+                    telefono: document.getElementById('editTelefono').value,
+                    correo: document.getElementById('editCorreo').value,
+                    username: document.getElementById('editUsername').value,
+                    estado_id: parseInt(document.getElementById('editEstado').value),
+                    rol_id: parseInt(document.getElementById('editRol').value)
+                };
+
+                // Obtener la contraseña si se ingresó
+                const password = document.getElementById('editPassword').value;
+                if (password) {
+                    updatedUser.password = password;
+                }
+
+                console.log('Datos a enviar:', updatedUser);
+
+                fetch(`/usuarios/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedUser),
+                })
+                .then(async response => {
+                    const contentType = response.headers.get('content-type');
+                    let data;
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                    } else {
+                        const text = await response.text();
+                        throw new Error(text || 'Error desconocido');
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Error al actualizar el usuario');
+                    }
+
+                    console.log('Respuesta del servidor:', data);
+                    alert('Usuario actualizado correctamente');
+                    document.getElementById('editUserForm').style.display = 'none';
+                    loadUsers(); // Refrescar la tabla de usuarios
+                })
+                .catch(error => {
+                    console.error('Error al actualizar el usuario:', error);
+                    alert(`Error al actualizar el usuario: ${error.message}`);
+                });
+            });
+
+            // Manejar el botón de cancelar edición
+            document.getElementById('cancelEditBtn').addEventListener('click', function() {
+                document.getElementById('editUserForm').style.display = 'none';
+            });
+
+            // Eliminamos la función de eliminar usuario
+            /*
+            // Función para eliminar un usuario
+            function deleteUser(id) {
+                if (confirm('¿Estás seguro de eliminar este usuario?')) {
+                    fetch(`/usuarios/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Usuario eliminado');
+                            loadUsers();
+                        } else {
+                            alert('Error al eliminar el usuario');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al eliminar usuario:', error);
+                        alert('Error al eliminar el usuario');
+                    });
+                }
+            }
+            */
+
+            // Eliminamos los event listeners y referencias a la eliminación
+            // No es necesario ya que hemos removido el botón de eliminar en la tabla
+
+            // Añadir eventos a los filtros y al buscador
+            searchInput.addEventListener('input', loadUsers);
+            filterEstado.addEventListener('change', loadUsers);
+            filterRol.addEventListener('change', loadUsers);
+
+            // Manejar el botón de crear nuevo usuario
+            createUserBtn.addEventListener('click', function() {
+                window.location.href = 'crear-usuario.html';
+            });
+
+            // Manejar el botón de cerrar sesión
+            logoutBtn.addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+
+            // Manejar el botón de avanzar al dashboard
+            goToDashboardBtn.addEventListener('click', function() {
+                window.location.href = 'dashboard.html';
+            });
+
+            // Cargar los estados, roles y usuarios al iniciar la página
+            await loadEstados();
+            await loadRoles();
+            await loadUsers();
+        });
+    </script>
+</body>
+</html>
