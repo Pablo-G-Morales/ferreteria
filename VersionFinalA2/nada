@@ -1,0 +1,21 @@
+login-app/
+│
+├── config/
+│   └── db.js           # Conexión a la base de datos
+│
+├── controllers/
+│   ├── userController.js  # Controlador para los usuarios
+│   └── authController.js  # Controlador para la autenticación
+│
+├── models/
+│   └── userModel.js     # Modelo de usuario
+│
+├── routes/
+│   └── userRoutes.js    # Rutas para usuarios
+│   └── authRoutes.js    # Rutas para autenticación
+│
+├── public/
+│   └── (archivos estáticos como CSS, HTML, JS)
+│
+├── index.js            # Archivo principal del servidor
+└── package.json
